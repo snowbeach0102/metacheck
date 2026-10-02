@@ -1,0 +1,3049 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>메타체크 (MetaCheck) - 과목별 객관적 메타인지 진단 & 실전 체화 플랫폼</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              50: '#eff6ff',
+              100: '#dbeafe',
+              500: '#3b82f6',
+              600: '#2563eb',
+              700: '#1d4ed8',
+              800: '#1e40af',
+              900: '#1e3a8a',
+            },
+            danger: {
+              50: '#fff1f2',
+              100: '#ffe4e6',
+              500: '#f43f5e',
+              600: '#e11d48',
+              700: '#be123c',
+            },
+            warning: {
+              50: '#fffbeb',
+              500: '#f59e0b',
+              600: '#d97706',
+            },
+            success: {
+              50: '#ecfdf5',
+              500: '#10b981',
+              600: '#059669',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    @import url('https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css');
+    * {
+      font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 4px;
+    }
+    @keyframes pulse-subtle {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.95; transform: scale(1.02); }
+    }
+    .animate-pulse-subtle {
+      animation: pulse-subtle 2s infinite ease-in-out;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Navigation Header -->
+  <header class="sticky top-0 z-40 bg-white/95 backdrop-blur border-b border-slate-200 px-4 lg:px-8 py-3.5 transition-all">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3 cursor-pointer" onclick="navigateTo('view-home')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-md shadow-brand-500/20">
+          M
+        </div>
+        <div>
+          <span class="text-xl font-bold tracking-tight text-slate-900 flex items-center gap-1.5">
+            MetaCheck
+            <span class="text-[10px] font-semibold tracking-wider uppercase px-2 py-0.5 rounded-full bg-brand-50 text-brand-600 border border-brand-200">v3.0 Course Sync</span>
+          </span>
+          <p class="text-xs text-slate-400 hidden sm:block">과목별 지식 체계 & 행동 로그 기반 객관적 메타인지 체화 검증 엔진</p>
+        </div>
+      </div>
+
+      <!-- Quick Nav Buttons & Auth Status -->
+      <div class="flex items-center gap-2 sm:gap-3">
+        <button onclick="quickStartTopic('운영체제 (OS)', '데드락 (교착상태 4대 조건)', 'IT_DEV')" class="hidden lg:inline-flex items-center gap-1.5 text-xs font-medium px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          <i class="fa-solid fa-bolt text-amber-500"></i> [OS] 데드락 즉시 테스트
+        </button>
+        <button onclick="navigateTo('view-home')" class="text-xs font-semibold px-3 py-2 rounded-lg text-slate-600 hover:bg-slate-100 transition flex items-center gap-1.5">
+          <i class="fa-solid fa-house"></i>
+          <span class="hidden sm:inline">홈</span>
+        </button>
+        <div class="h-4 w-px bg-slate-200"></div>
+
+        <!-- User Auth Section -->
+        <div id="auth-header-logged-in" class="flex items-center gap-2 pl-1">
+          <div id="user-avatar-badge" class="w-8 h-8 rounded-full bg-brand-100 border border-brand-200 flex items-center justify-center text-brand-700 font-bold text-xs">
+            홍
+          </div>
+          <div class="hidden sm:flex flex-col text-left">
+            <span id="user-name-display" class="text-xs font-bold text-slate-800 leading-tight">홍길동</span>
+            <span id="user-role-display" class="text-[10px] text-slate-400">전공 대학생</span>
+          </div>
+          <button onclick="handleLogout()" class="text-xs text-slate-400 hover:text-slate-700 p-1.5 rounded-lg hover:bg-slate-100 transition" title="로그아웃">
+            <i class="fa-solid fa-arrow-right-from-bracket"></i>
+          </button>
+        </div>
+
+        <div id="auth-header-logged-out" class="hidden flex items-center gap-1.5">
+          <button onclick="openAuthModal('login')" class="text-xs font-semibold px-3 py-1.5 rounded-lg text-slate-600 hover:bg-slate-100 transition">
+            로그인
+          </button>
+          <button onclick="openAuthModal('register')" class="text-xs font-bold px-3 py-1.5 rounded-lg bg-brand-600 hover:bg-brand-700 text-white transition shadow-sm">
+            회원가입
+          </button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Notification Toast Container -->
+  <div id="toast-container" class="fixed top-20 right-4 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Speed Limit Warning Modal -->
+  <div id="speed-limit-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div class="bg-white rounded-3xl shadow-2xl border-2 border-amber-400 max-w-lg w-full p-6 sm:p-8 relative">
+      <div class="w-14 h-14 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center text-2xl mx-auto mb-4 animate-bounce">
+        <i class="fa-solid fa-bolt-lightning"></i>
+      </div>
+      <div class="text-center space-y-2">
+        <span class="px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800 text-[11px] font-black uppercase tracking-wider">
+          Speed Limit Defense 방어 발동
+        </span>
+        <h3 class="text-xl font-black text-slate-900">최소 읽기 시간 하한선 미달 (성급한 찍기 감지)</h3>
+        <p class="text-xs text-slate-600 leading-relaxed pt-1">
+          문항의 지문 및 보기 총 글자 수 대비 소요 시간이 <strong class="text-amber-700">기준 시간의 20% 미만</strong>으로 측정되었습니다.<br>
+          단순 찍기나 요행에 의한 우연한 정답을 방지하기 위해, <strong>동일 개념의 검증용 유사 변형 시나리오 문항이 1회 추가 출제</strong>됩니다.
+        </p>
+      </div>
+
+      <div class="mt-5 p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-left text-xs space-y-1.5 text-amber-900 font-medium">
+        <div class="flex justify-between">
+          <span>권장 기준 시간:</span>
+          <strong id="modal-speed-standard" class="font-mono">18초</strong>
+        </div>
+        <div class="flex justify-between">
+          <span>최소 정독 하한선 (20%):</span>
+          <strong id="modal-speed-threshold" class="font-mono text-amber-700">3.6초</strong>
+        </div>
+        <div class="flex justify-between">
+          <span>나의 실제 풀이 시간:</span>
+          <strong id="modal-speed-actual" class="font-mono text-danger-600">1.2초 (성급함)</strong>
+        </div>
+      </div>
+
+      <div class="mt-6">
+        <button onclick="closeSpeedLimitModalAndContinue()" class="w-full py-3.5 rounded-xl bg-amber-500 hover:bg-amber-600 active:scale-98 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-2">
+          <span>검증용 유사 변형 문제 풀기</span>
+          <i class="fa-solid fa-arrow-right text-xs"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Exit Session Confirmation Modal -->
+  <div id="quiz-exit-modal" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-md w-full p-6 sm:p-7 relative space-y-5">
+      <div class="w-12 h-12 rounded-2xl bg-rose-50 text-rose-600 flex items-center justify-center text-xl mx-auto">
+        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+      </div>
+      <div class="text-center space-y-1.5">
+        <h3 class="text-lg font-black text-slate-900">학습을 중단하고 나가시겠습니까?</h3>
+        <p class="text-xs text-slate-500 leading-relaxed">
+          진행 중인 세션을 어떻게 처리할지 선택하세요.<br>
+          지금까지 푼 문항이 있는 경우 중도 진단 리포트로 저장할 수 있습니다.
+        </p>
+      </div>
+
+      <div class="space-y-2 pt-1">
+        <button onclick="confirmExitWithSave()" id="btn-exit-save" class="w-full py-3 px-4 rounded-xl bg-brand-600 hover:bg-brand-700 text-white font-bold text-xs shadow-xs transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-floppy-disk"></i>
+          <span>지금까지 푼 내용으로 진단 결과 저장 후 나가기</span>
+        </button>
+        <button onclick="confirmExitDiscard()" class="w-full py-2.5 px-4 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-700 hover:text-rose-700 font-semibold text-xs transition flex items-center justify-center gap-2">
+          <i class="fa-solid fa-trash-can text-slate-400"></i>
+          <span>저장하지 않고 세션 취소 (홈으로 이동)</span>
+        </button>
+        <button onclick="closeExitModal()" class="w-full py-2 text-xs font-semibold text-slate-400 hover:text-slate-600 transition">
+          계속 풀기 (취소)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Main App Shell -->
+  <main class="flex-1 max-w-7xl w-full mx-auto p-4 sm:p-6 lg:p-8 flex flex-col">
+
+    <!-- ======================================================== -->
+    <!-- VIEW 0: FIRST-TIME ENTRY LOGIN PAGE (/auth) -->
+    <!-- ======================================================== -->
+    <section id="view-auth" class="app-view space-y-8 animate-fadeIn">
+      <!-- Welcome Hero Card -->
+      <div class="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-indigo-950 to-slate-900 text-white p-6 sm:p-10 shadow-2xl border border-slate-800">
+        <div class="absolute -right-20 -bottom-20 w-96 h-96 bg-brand-500/15 rounded-full blur-3xl pointer-events-none"></div>
+        <div class="max-w-2xl relative z-10 space-y-4">
+          <div class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-white/10 text-brand-200 text-xs font-semibold backdrop-blur border border-white/10">
+            <i class="fa-solid fa-sparkles text-amber-300"></i>
+            <span>과목별 전공 이론 객관적 체화도 검증 엔진</span>
+          </div>
+          <h1 class="text-3xl sm:text-4xl font-extrabold tracking-tight leading-tight">
+            메타체크(MetaCheck)에 오신 것을 환영합니다.<br>
+            <span class="text-transparent bg-clip-text bg-gradient-to-r from-brand-300 via-indigo-200 to-amber-200">
+              과목별 안다고 착각한 맹점
+            </span>을 명확히 가려내 드립니다.
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed">
+            단순 눈도장 자가 진단은 그만! 수강 과목과 단원 PDF를 투입하면, AI가 실생활 시나리오로 변환하고 풀이 속도·번복 로그·Speed Limit 방어로 진짜 체화 여부를 판정합니다.
+          </p>
+
+          <!-- Introduction Popup Trigger Button -->
+          <div class="pt-2">
+            <button type="button" onclick="openIntroServiceModal()" class="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-brand-500/20 hover:bg-brand-500/30 text-brand-200 border border-brand-400/30 text-xs font-bold transition shadow-sm hover:scale-105 active:scale-95">
+              <i class="fa-solid fa-circle-question text-amber-300 text-sm"></i>
+              <span>메타체크는 어떤 서비스인가요? (1분 핵심 가이드 팝업 열기)</span>
+              <i class="fa-solid fa-arrow-right text-[10px]"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Login / Register Card Container -->
+      <div class="max-w-xl mx-auto w-full bg-white rounded-3xl border border-slate-200 shadow-xl p-6 sm:p-10 space-y-6">
+        <div class="text-center space-y-2">
+          <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-brand-600 to-indigo-600 text-white font-black text-2xl flex items-center justify-center mx-auto shadow-md shadow-brand-500/25">
+            M
+          </div>
+          <h2 id="login-page-title" class="text-2xl font-black text-slate-900">학습 계정 로그인</h2>
+          <p id="login-page-subtitle" class="text-xs text-slate-500">과목별 메타인지 진단 결과와 오답 복습 덱을 안전하게 보관하세요.</p>
+        </div>
+
+        <!-- Mode Toggle Tabs -->
+        <div class="flex border-b border-slate-200">
+          <button type="button" id="entry-tab-login" onclick="switchEntryAuthTab('login')" class="flex-1 pb-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600 transition">
+            기존 회원 로그인
+          </button>
+          <button type="button" id="entry-tab-register" onclick="switchEntryAuthTab('register')" class="flex-1 pb-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition">
+            신규 회원가입
+          </button>
+        </div>
+
+        <!-- Auth Form -->
+        <form onsubmit="handleEntryAuthSubmit(event)" class="space-y-4">
+          <div id="entry-field-name" class="hidden space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">이름 또는 닉네임</label>
+            <input type="text" id="entry-input-name" placeholder="홍길동" value="홍길동"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-100 outline-none transition bg-slate-50">
+          </div>
+
+          <div id="entry-field-role" class="hidden space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">학습 대상 구분</label>
+            <select id="entry-input-role" class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:bg-white focus:border-brand-500 outline-none transition text-slate-700 bg-slate-50">
+              <option value="전공 대학생" selected>전공 대학생 (학점 및 전공 시험 대비)</option>
+              <option value="직무 취업준비생">직무 취업준비생 (IT/기술 면접 및 코테 대비)</option>
+              <option value="전문 자격증 직장인">전문 자격증 직장인 (스킬업 및 전문성 향상)</option>
+            </select>
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">이메일 계정</label>
+            <input type="email" id="entry-input-email" required placeholder="student@university.ac.kr" value="student@university.ac.kr"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-100 outline-none transition bg-slate-50">
+          </div>
+
+          <div class="space-y-1.5">
+            <label class="block text-xs font-bold text-slate-700">비밀번호</label>
+            <input type="password" id="entry-input-password" required placeholder="••••••••" value="password123"
+                   class="w-full px-4 py-3 rounded-xl border border-slate-200 text-xs font-medium focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-100 outline-none transition bg-slate-50">
+          </div>
+
+          <div class="pt-3">
+            <button type="submit" id="entry-submit-btn" class="w-full py-3.5 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-98 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+              <span>메타체크 로그인하고 학습 시작</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </form>
+
+        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <button type="button" onclick="setDemoAuthCredentialsOnLogin()" class="text-brand-600 hover:text-brand-800 font-bold flex items-center gap-1.5">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span>데모 계정 자동완성</span>
+          </button>
+          <button type="button" onclick="loginAsGuest()" class="text-slate-500 hover:text-slate-800 font-semibold flex items-center gap-1">
+            <span>게스트로 즉시 체험하기</span>
+            <i class="fa-solid fa-chevron-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 1: HOME & SETUP WITH COURSE CATEGORIZATION (/home) -->
+    <!-- ======================================================== -->
+    <section id="view-home" class="app-view hidden space-y-6 animate-fadeIn">
+      <!-- 1. 학습 세션 설정 카드 (과목명 + 단원명 분리 입력) -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
+              <i class="fa-solid fa-folder-tree"></i>
+              <span>과목별 맞춤 학습 설정</span>
+            </div>
+            <h2 class="text-xl font-black text-slate-900">학습 세션 설정</h2>
+            <p class="text-xs text-slate-400 mt-0.5">과목명과 세부 단원을 입력하면 과목별로 세션과 오답 복습 덱이 자동 분류됩니다.</p>
+          </div>
+          <!-- Domain Tag Selector -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-600 self-start sm:self-auto">
+            <button type="button" onclick="selectDomain(this, 'IT_DEV')" class="domain-btn px-3.5 py-2 rounded-xl bg-white shadow-xs text-brand-600 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-code text-[11px]"></i>
+              <span>IT / 컴공</span>
+            </button>
+            <button type="button" onclick="selectDomain(this, 'BUSINESS_ECONOMY')" class="domain-btn px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-chart-line text-[11px]"></i>
+              <span>경영 / 경제</span>
+            </button>
+            <button type="button" onclick="selectDomain(this, 'PSYCHOLOGY')" class="domain-btn px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition flex items-center gap-1.5">
+              <i class="fa-solid fa-user-group text-[11px]"></i>
+              <span>심리학</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Input Mode Tabs -->
+        <div class="space-y-5">
+          <div class="flex border-b border-slate-200">
+            <button onclick="switchInputMode('topic')" id="tab-mode-topic" class="flex-1 pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-keyboard text-xs"></i>
+              <span>키워드 직접 입력 (Fast Track)</span>
+            </button>
+            <button onclick="switchInputMode('pdf')" id="tab-mode-pdf" class="flex-1 pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-file-pdf text-xs"></i>
+              <span>교재 / 슬라이드 PDF 업로드</span>
+            </button>
+          </div>
+
+          <!-- Mode 1: Topic Keyword Input with Subject Field -->
+          <div id="content-mode-topic" class="space-y-4 pt-1">
+            <!-- Subject Field -->
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <label class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-book-bookmark text-brand-600"></i>
+                  <span>수강 과목명 (교과목)</span>
+                </label>
+                <span class="text-[11px] text-slate-400">과목별로 세션과 오답 덱이 자동 분류됩니다</span>
+              </div>
+              <div class="relative">
+                <input type="text" id="input-subject-name" placeholder="예: 운영체제 (OS), 데이터베이스, 미시경제학, 소프트웨어공학" 
+                       value="운영체제 (OS)" 
+                       class="w-full px-4 py-3 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-100 transition outline-none text-slate-800 text-sm font-semibold pr-12">
+                <div class="absolute right-3 top-2.5 text-xs text-slate-400 pointer-events-none">
+                  <span class="px-2 py-0.5 rounded bg-slate-200 text-slate-600 text-[10px] font-bold">과목</span>
+                </div>
+              </div>
+              <!-- Quick Subject Chips -->
+              <div class="flex flex-wrap items-center gap-1.5 pt-0.5">
+                <span class="text-[11px] text-slate-400 font-medium mr-1">빠른 과목 선택:</span>
+                <button type="button" onclick="setSubjectValue('운영체제 (OS)', 'IT_DEV')" class="text-[11px] px-2.5 py-1 rounded-lg bg-brand-50 hover:bg-brand-100 text-brand-700 font-bold border border-brand-200 transition">
+                  운영체제
+                </button>
+                <button type="button" onclick="setSubjectValue('데이터베이스 (DB)', 'IT_DEV')" class="text-[11px] px-2.5 py-1 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-bold border border-indigo-200 transition">
+                  데이터베이스
+                </button>
+                <button type="button" onclick="setSubjectValue('미시경제학', 'BUSINESS_ECONOMY')" class="text-[11px] px-2.5 py-1 rounded-lg bg-emerald-50 hover:bg-emerald-100 text-emerald-700 font-bold border border-emerald-200 transition">
+                  미시경제학
+                </button>
+                <button type="button" onclick="setSubjectValue('인지심리학', 'PSYCHOLOGY')" class="text-[11px] px-2.5 py-1 rounded-lg bg-amber-50 hover:bg-amber-100 text-amber-700 font-bold border border-amber-200 transition">
+                  인지심리학
+                </button>
+              </div>
+            </div>
+
+            <!-- Topic Field -->
+            <div class="space-y-1.5 pt-1">
+              <label class="block text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                <i class="fa-solid fa-list-check text-slate-600"></i>
+                <span>단원 및 세부 이론 주제명</span>
+              </label>
+              <div class="relative">
+                <input type="text" id="input-topic-text" placeholder="예: 데드락 (교착상태 4대 조건), 트랜잭션 격리수준, 기회비용과 매몰비용" 
+                       value="데드락 (교착상태 4대 조건)" 
+                       class="w-full px-4 py-3.5 rounded-2xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-brand-500 focus:ring-4 focus:ring-brand-100 transition outline-none text-slate-800 text-sm font-medium pr-10">
+                <button onclick="clearTopicInput()" class="absolute right-3.5 top-3.5 text-slate-400 hover:text-slate-600 transition">
+                  <i class="fa-solid fa-circle-xmark"></i>
+                </button>
+              </div>
+            </div>
+
+            <!-- Quick Preset Chips -->
+            <div class="space-y-2 pt-1">
+              <span class="text-xs font-semibold text-slate-500 block">추천 벤치마크 예시:</span>
+              <div class="flex flex-wrap gap-2">
+                <button onclick="setSubjectAndTopic('운영체제 (OS)', '데드락 4대 발생 조건 및 회피', 'IT_DEV')" class="text-xs px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-brand-500"></span> [OS] 데드락 4대 조건
+                </button>
+                <button onclick="setSubjectAndTopic('데이터베이스 (DB)', '트랜잭션 격리수준 (Isolation Level)', 'IT_DEV')" class="text-xs px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-indigo-500"></span> [DB] 트랜잭션 격리수준
+                </button>
+                <button onclick="setSubjectAndTopic('미시경제학', '기회비용과 매몰비용 오류', 'BUSINESS_ECONOMY')" class="text-xs px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-emerald-500"></span> [경제] 기회비용 vs 매몰비용
+                </button>
+                <button onclick="setSubjectAndTopic('인지심리학', '확증편향과 앵커링 효과', 'PSYCHOLOGY')" class="text-xs px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold transition flex items-center gap-1.5">
+                  <span class="w-2 h-2 rounded-full bg-amber-500"></span> [심리] 확증편향 & 앵커링
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Mode 2: PDF Upload Dropzone with Subject & Unit Inputs -->
+          <div id="content-mode-pdf" class="hidden space-y-4 pt-1">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700">수강 과목명 (교과목)</label>
+                <input type="text" id="pdf-input-subject" placeholder="예: 운영체제 (OS)" value="운영체제 (OS)"
+                       class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-brand-500 outline-none text-xs font-semibold">
+              </div>
+              <div class="space-y-1.5">
+                <label class="block text-xs font-bold text-slate-700">해당 단원 / 챕터명</label>
+                <input type="text" id="pdf-input-unit" placeholder="예: 7장 교착상태 (Deadlocks)" value="7장 교착상태 (Deadlocks)"
+                       class="w-full px-4 py-2.5 rounded-xl border border-slate-200 bg-slate-50/70 focus:bg-white focus:border-brand-500 outline-none text-xs font-semibold">
+              </div>
+            </div>
+
+            <div id="pdf-dropzone" ondragover="handleDragOver(event)" ondragleave="handleDragLeave(event)" ondrop="handleDrop(event)"
+                 class="border-2 border-dashed border-slate-300 rounded-2xl p-7 text-center hover:border-brand-500 hover:bg-brand-50/30 transition cursor-pointer flex flex-col items-center justify-center gap-2.5">
+              <div class="w-12 h-12 rounded-2xl bg-brand-50 text-brand-600 flex items-center justify-center text-xl">
+                <i class="fa-solid fa-cloud-arrow-up"></i>
+              </div>
+              <div>
+                <p class="text-sm font-bold text-slate-800">교재 슬라이드 PDF를 드래그하여 놓거나 클릭하여 선택</p>
+                <p class="text-xs text-slate-500 mt-0.5">권장 규격: 단원별 분량 (30MB 이하, 30페이지 내외)</p>
+              </div>
+              <input type="file" id="pdf-file-input" accept=".pdf" class="hidden" onchange="handleFileSelected(this)">
+              <button type="button" onclick="document.getElementById('pdf-file-input').click()" class="text-xs font-semibold px-4 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 transition">
+                파일 탐색기 열기
+              </button>
+            </div>
+            <div id="pdf-selected-info" class="hidden p-4 rounded-xl bg-slate-100 border border-slate-200 flex items-center justify-between">
+              <div class="flex items-center gap-3">
+                <i class="fa-solid fa-file-pdf text-red-500 text-2xl"></i>
+                <div>
+                  <p id="pdf-selected-name" class="text-sm font-bold text-slate-800">OS_Chapter07_Deadlocks.pdf</p>
+                  <p id="pdf-selected-size" class="text-xs text-slate-500">4.8 MB · 텍스트 추출 완료 준비</p>
+                </div>
+              </div>
+              <button onclick="clearSelectedFile()" class="text-slate-400 hover:text-slate-600 text-sm">
+                <i class="fa-solid fa-trash-can"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Start CTA Button Footer -->
+        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div class="flex items-center gap-2 text-xs text-slate-500">
+            <i class="fa-solid fa-shield-halved text-emerald-500"></i>
+            <span>AI가 과목별 단원 개념 트리 3개와 난이도별 실생활 시나리오를 구조화합니다.</span>
+          </div>
+          <button onclick="startAiExtraction()" class="w-full sm:w-auto px-8 py-3.5 rounded-2xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+            <span>실전 체화 테스트 시작하기</span>
+            <i class="fa-solid fa-arrow-right text-xs"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- ======================================================== -->
+      <!-- 2. 최근 학습 히스토리 & 과목별 복습 아카이브 카드 -->
+      <!-- ======================================================== -->
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-bold mb-2">
+              <i class="fa-solid fa-clock-rotate-left"></i>
+              <span>과목별 학습 히스토리 & 복습 아카이브</span>
+            </div>
+            <h3 class="text-xl font-black text-slate-900">과목별 학습 세션 확인 및 즉시 복습</h3>
+            <p class="text-xs text-slate-400 mt-0.5">
+              과목별로 축적된 메타인지 진단 결과(🚨 착각, 🟡 불안정)를 확인하고 복습 덱으로 즉시 재진입할 수 있습니다.
+            </p>
+          </div>
+          
+          <!-- Status Filter Tabs -->
+          <div class="flex items-center gap-1.5 bg-slate-100 p-1.5 rounded-2xl text-xs font-bold text-slate-600 self-start sm:self-auto">
+            <button onclick="filterHistory('ALL', this)" class="history-filter-btn px-3.5 py-2 rounded-xl bg-white shadow-xs text-brand-600 transition">
+              전체 세션 (<span id="count-history-all">4</span>)
+            </button>
+            <button onclick="filterHistory('ILLUSION', this)" class="history-filter-btn px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
+              🚨 미해결 착각 (<span id="count-history-illusion">2</span>)
+            </button>
+            <button onclick="filterHistory('MASTERY', this)" class="history-filter-btn px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition">
+              🟢 완전 체화 (<span id="count-history-mastery">2</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Subject Categorization Filter Bar -->
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-filter text-brand-600"></i>
+              <span>과목별 모아보기 필터</span>
+            </span>
+            <span class="text-[11px] text-slate-400 font-medium">원하는 과목만 골라서 확인할 수 있습니다</span>
+          </div>
+          <div id="subject-filter-chips" class="flex flex-wrap items-center gap-1.5 pt-1">
+            <!-- Dynamically populated via renderSubjectFilterChips() -->
+          </div>
+        </div>
+
+        <!-- History Session Cards List -->
+        <div id="history-session-list" class="space-y-3.5">
+          <!-- Dynamically populated via renderHistorySessions() -->
+        </div>
+
+        <!-- Bottom Stat Summary Banner -->
+        <div class="p-4 sm:p-5 rounded-2xl bg-slate-50 border border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-600">
+          <div class="flex items-center gap-2.5">
+            <i class="fa-solid fa-chart-pie text-brand-600 text-base"></i>
+            <span>
+              누적 학습 데이터: 총 <strong id="hist-total-sessions" class="text-slate-900">4개</strong> 세션 완료 
+              (발굴된 구조적 착각 맹점 <strong id="hist-total-illusions" class="text-danger-600">3개 중 1개 해소</strong>)
+            </span>
+          </div>
+          <button onclick="showToast('과목별 누적 메타인지 통계 리포트가 곧 오픈됩니다.', 'info')" class="text-xs font-bold text-brand-600 hover:text-brand-800 transition flex items-center gap-1">
+            <span>과목별 통계 대시보드</span>
+            <i class="fa-solid fa-arrow-right text-[10px]"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW: STUDY MODE SELECTION (/mode-select) -->
+    <!-- ======================================================== -->
+    <section id="view-mode-select" class="app-view hidden space-y-6 animate-fadeIn">
+      <!-- Header Banner with Subject Breadcrumb -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-brand-600 mb-1">
+            <span id="mode-select-subject-badge" class="px-2.5 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold">
+              운영체제 (OS)
+            </span>
+            <span class="text-slate-400">•</span>
+            <span class="px-2 py-0.5 rounded-md bg-brand-50 border border-brand-200 text-brand-700 font-bold">2단계 검증 방식 선택</span>
+            <span class="text-slate-400">•</span>
+            <span id="mode-select-topic-badge" class="font-bold text-slate-700">데드락 (교착상태 4대 조건)</span>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">어떤 방식으로 체화도를 검증하시겠습니까?</h2>
+          <p class="text-xs text-slate-500 mt-1">학습 목적에 맞춰 메타인지 적응형 셔플 또는 단계별 단독 집중 풀이 중 하나를 선택하세요.</p>
+        </div>
+        <div class="self-start sm:self-auto shrink-0 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 shadow-2xs">
+          <button onclick="navigateTo('view-home')" class="text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-white border border-brand-200 text-brand-700 hover:bg-brand-50/80 hover:border-brand-400 hover:text-brand-800 transition flex items-center gap-2 shadow-xs group">
+            <i class="fa-solid fa-arrow-left text-xs text-brand-500 group-hover:-translate-x-0.5 transition-transform"></i>
+            <span>과목 / 자료 다시 설정</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- 2 Mode Selection Cards Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pt-2">
+        <!-- OPTION 1: Adaptive Shuffle Mode -->
+        <div class="relative bg-white rounded-2xl border-2 border-brand-500/80 shadow-lg shadow-brand-500/10 p-6 sm:p-8 flex flex-col justify-between hover:border-brand-600 transition group">
+          <div class="absolute -top-4 -left-4 w-11 h-11 rounded-2xl bg-gradient-to-tr from-amber-500 via-amber-400 to-yellow-300 flex items-center justify-center text-white shadow-lg shadow-amber-500/30 border-2 border-white transform -rotate-12 group-hover:rotate-0 group-hover:scale-110 transition duration-300 z-10" title="메타체크 추천 모드">
+            <i class="fa-solid fa-crown text-base text-amber-950"></i>
+          </div>
+
+          <div class="space-y-4">
+            <div class="flex items-center justify-between pl-4">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-gradient-to-r from-amber-50 to-brand-50 border border-amber-300 text-amber-800 text-xs font-extrabold shadow-xs">
+                <i class="fa-solid fa-fire text-amber-500"></i>
+                <span>추천 (메타체크 표준 체화)</span>
+              </span>
+              <span class="text-[11px] font-bold text-slate-400">선택권 01</span>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                적응형 셔플 승강등 모드 (CAT)
+              </h3>
+              <p class="text-xs text-brand-600 font-bold mt-1">
+                실생활 적용(2단계) 시작 ➔ 정답 시 3단계 승격 / 오답 시 1단계 강등
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-2.5 leading-relaxed">
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-brand-600"></i> 이 모드는 어떤 기능인가요?
+              </div>
+              <p>
+                단순 용어 암기 상태와 현실 응용력을 가장 빠르게 가려내는 <strong>메타체크의 특허 진단 방식</strong>입니다.
+              </p>
+              <ul class="space-y-1.5 pl-1 text-[11px] text-slate-600">
+                <li class="flex items-start gap-1.5">
+                  <span class="text-brand-600 font-bold">•</span>
+                  <span><strong>2단계(실생활/실무 시나리오)</strong>를 먼저 풀어 이론을 현실에 응용 가능한지 테스트합니다.</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <span class="text-emerald-600 font-bold">•</span>
+                  <span><strong>맞추면 3단계(심화 트러블슈팅)</strong>로 승격되어 엣지 케이스까지 완벽 체화되었는지 검증합니다.</span>
+                </li>
+                <li class="flex items-start gap-1.5">
+                  <span class="text-danger-600 font-bold">•</span>
+                  <span><strong>틀리면 1단계(기초 정의)</strong>로 하락 출제하여 개념 정의조차 모르는 결손인지 적발합니다.</span>
+                </li>
+              </ul>
+            </div>
+          </div>
+
+          <div class="pt-5 mt-4 border-t border-slate-100 space-y-3">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-list-ol text-brand-600"></i> 문항 수 선택 (5문제 단위)
+                </span>
+                <span class="text-[11px] text-slate-400 font-medium">기본 10문제 · 최대 25문제</span>
+              </div>
+              <div class="grid grid-cols-5 gap-1.5">
+                <button type="button" onclick="setQuestionCount(5)" data-qcount="5" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">5문제</button>
+                <button type="button" onclick="setQuestionCount(10)" data-qcount="10" class="q-count-btn py-2 px-1 rounded-xl border-2 border-brand-500 bg-brand-50/80 text-xs font-bold text-brand-600 shadow-xs ring-2 ring-brand-100 transition text-center">10문제<br><span class="text-[9px] font-normal text-brand-500">(기본)</span></button>
+                <button type="button" onclick="setQuestionCount(15)" data-qcount="15" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">15문제</button>
+                <button type="button" onclick="setQuestionCount(20)" data-qcount="20" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">20문제</button>
+                <button type="button" onclick="setQuestionCount(25)" data-qcount="25" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">25문제<br><span class="text-[9px] font-normal text-slate-400">(최대)</span></button>
+              </div>
+            </div>
+
+            <button onclick="selectStudyMode('ADAPTIVE_SHUFFLE')" class="w-full py-3.5 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 active:scale-98 text-white font-bold text-sm shadow-md shadow-brand-500/25 transition flex items-center justify-center gap-2">
+              <i class="fa-solid fa-crown text-amber-300 text-xs"></i>
+              <span id="btn-adaptive-mode-text">총 10문제 적응형 셔플 모드로 시작하기</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- OPTION 2: Fixed Level Custom Mode -->
+        <div class="relative bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 flex flex-col justify-between hover:border-slate-400 transition group">
+          <div class="space-y-4">
+            <div class="flex items-center justify-between">
+              <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-100 border border-slate-200 text-slate-700 text-xs font-bold">
+                <i class="fa-solid fa-sliders text-slate-500"></i>
+                <span>단계별 자유 선택</span>
+              </span>
+              <span class="text-[11px] font-bold text-slate-400">선택권 02</span>
+            </div>
+
+            <div>
+              <h3 class="text-xl font-black text-slate-900 flex items-center gap-2">
+                단계별 맞춤 단독 풀이 모드
+              </h3>
+              <p class="text-xs text-slate-500 font-medium mt-1">
+                원하는 특정 단계(개념만, 실전만, 심화만)를 선택하여 일괄 집중 학습
+              </p>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-600 space-y-2.5 leading-relaxed">
+              <div class="font-bold text-slate-800 flex items-center gap-1.5">
+                <i class="fa-solid fa-circle-info text-slate-600"></i> 이 모드는 어떤 기능인가요?
+              </div>
+              <p>
+                난이도 자동 승강등 없이, <strong>내가 취약하다고 생각하는 특정 난이도만 1단계부터 3단계 중 직접 지정</strong>하여 3개 세부 개념을 균일하게 풀이하는 맞춤 모드입니다.
+              </p>
+              
+              <div class="pt-2 space-y-2">
+                <span class="text-[11px] font-bold text-slate-700 block">원하는 단계를 하나 선택하세요:</span>
+                <div class="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button type="button" onclick="setFixedLevelChoice(1)" id="choice-level-1" class="fixed-lvl-btn p-2.5 rounded-xl border-2 border-slate-200 text-left hover:border-emerald-400 transition bg-white">
+                    <span class="text-xs font-bold text-emerald-700 block">1단계 (개념)</span>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">기초 용어/정의</span>
+                  </button>
+                  <button type="button" onclick="setFixedLevelChoice(2)" id="choice-level-2" class="fixed-lvl-btn p-2.5 rounded-xl border-2 border-brand-500 bg-brand-50/50 text-left transition">
+                    <span class="text-xs font-bold text-amber-700 block">2단계 (실전)</span>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">실생활 상황 적용</span>
+                  </button>
+                  <button type="button" onclick="setFixedLevelChoice(3)" id="choice-level-3" class="fixed-lvl-btn p-2.5 rounded-xl border-2 border-slate-200 text-left hover:border-purple-400 transition bg-white">
+                    <span class="text-xs font-bold text-purple-700 block">3단계 (심화)</span>
+                    <span class="text-[10px] text-slate-400 block mt-0.5">반례/트러블슈팅</span>
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-5 mt-4 border-t border-slate-100 space-y-3">
+            <div class="space-y-1.5">
+              <div class="flex items-center justify-between">
+                <span class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                  <i class="fa-solid fa-list-ol text-slate-600"></i> 문항 수 선택 (5문제 단위)
+                </span>
+                <span class="text-[11px] text-slate-400 font-medium">기본 10문제 · 최대 25문제</span>
+              </div>
+              <div class="grid grid-cols-5 gap-1.5">
+                <button type="button" onclick="setQuestionCount(5)" data-qcount="5" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">5문제</button>
+                <button type="button" onclick="setQuestionCount(10)" data-qcount="10" class="q-count-btn py-2 px-1 rounded-xl border-2 border-brand-500 bg-brand-50/80 text-xs font-bold text-brand-600 shadow-xs ring-2 ring-brand-100 transition text-center">10문제<br><span class="text-[9px] font-normal text-brand-500">(기본)</span></button>
+                <button type="button" onclick="setQuestionCount(15)" data-qcount="15" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">15문제</button>
+                <button type="button" onclick="setQuestionCount(20)" data-qcount="20" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">20문제</button>
+                <button type="button" onclick="setQuestionCount(25)" data-qcount="25" class="q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center">25문제<br><span class="text-[9px] font-normal text-slate-400">(최대)</span></button>
+              </div>
+            </div>
+
+            <button onclick="selectStudyMode('FIXED_LEVEL')" class="w-full py-3.5 rounded-xl bg-slate-900 hover:bg-slate-800 active:scale-98 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2">
+              <span id="btn-fixed-level-text">선택한 2단계(실전) 10문제만 풀기</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 2: KNOWLEDGE TREE INTRO (/intro) -->
+    <!-- ======================================================== -->
+    <section id="view-intro" class="app-view hidden space-y-6 animate-fadeIn">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div class="space-y-1">
+          <div class="flex flex-wrap items-center gap-2 text-xs font-semibold text-brand-600">
+            <span id="intro-subject-badge" class="px-2.5 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 font-bold">
+              운영체제 (OS)
+            </span>
+            <span class="text-slate-300">•</span>
+            <span class="px-2.5 py-0.5 rounded-md bg-brand-50 border border-brand-200">지식 체계 추출 완료</span>
+            <span class="text-slate-300">•</span>
+            <span id="intro-domain-badge" class="text-slate-600 font-bold">IT / 컴공 전공</span>
+            <span class="text-slate-300">•</span>
+            <span id="intro-mode-count-badge" class="px-2.5 py-0.5 rounded-md bg-amber-50 border border-amber-300 text-amber-900 font-black flex items-center gap-1 shadow-2xs">
+              <i class="fa-solid fa-sliders text-amber-600"></i>
+              <span id="intro-summary-text">선택 모드: 적응형 셔플 (CAT) | 총 10문항</span>
+            </span>
+          </div>
+          <h2 id="intro-topic-title" class="text-2xl font-black text-slate-900">운영체제 (OS) - 데드락 (교착상태 4대 조건)</h2>
+        </div>
+
+        <div class="flex items-center gap-2 self-start sm:self-auto shrink-0 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 shadow-2xs">
+          <button onclick="navigateTo('view-mode-select')" class="text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-white border border-brand-200 text-brand-700 hover:bg-brand-50/80 hover:border-brand-400 hover:text-brand-800 transition flex items-center gap-2 shadow-xs group">
+            <i class="fa-solid fa-arrow-left text-xs text-brand-500 group-hover:-translate-x-0.5 transition-transform"></i>
+            <span>모드 / 문항 수 다시 선택</span>
+          </button>
+          <button onclick="navigateTo('view-home')" class="text-xs sm:text-sm font-bold px-3.5 py-2.5 rounded-xl bg-white/70 hover:bg-white border border-slate-200 text-slate-600 hover:text-slate-800 transition flex items-center gap-1.5 shadow-2xs">
+            <i class="fa-solid fa-rotate-left text-xs text-slate-400"></i>
+            <span>과목 변경</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="bg-white rounded-3xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div class="space-y-1">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-diagram-project text-brand-600"></i>
+            오늘 검증할 세부 개념 체계 (3대 핵심 콘텐츠)
+          </h3>
+          <p class="text-xs text-slate-500">AI가 교재에서 발췌한 핵심 개념 콘텐츠입니다. 선택하신 모드와 레벨에 맞춰 실생활 시나리오 문항이 배정됩니다.</p>
+        </div>
+
+        <div id="knowledge-tree-nodes" class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <!-- Dynamically Injected Content Nodes -->
+        </div>
+
+        <div class="rounded-2xl bg-slate-50 border border-slate-200 p-5 space-y-3">
+          <div class="flex items-center justify-between">
+            <h4 class="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center gap-2">
+              <i class="fa-solid fa-circle-info text-brand-600"></i> 메타체크 시험 진행 규칙
+            </h4>
+            <span id="intro-rule-mode-label" class="text-[11px] font-bold text-brand-600 bg-brand-50 px-2 py-0.5 rounded border border-brand-200">
+              적응형 셔플 모드 적용 중
+            </span>
+          </div>
+          <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs text-slate-600">
+            <div class="flex items-start gap-2">
+              <span class="font-black text-brand-600">01.</span>
+              <span id="rule-desc-1"><strong>실생활 적용(2단계)부터 출제:</strong> 단순 정의 암기가 아닌 실생활 시나리오에 응용 가능한지 먼저 테스트합니다.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="font-black text-brand-600">02.</span>
+              <span id="rule-desc-2"><strong>난이도 동적 분기:</strong> 정답 시 3단계(심화)로 승격, 오답 시 1단계(개념 정의)로 강등 출제됩니다.</span>
+            </div>
+            <div class="flex items-start gap-2">
+              <span class="font-black text-brand-600">03.</span>
+              <span><strong>행동 정밀 로깅:</strong> 지문 길이에 따른 가변 타이머, 보기 번복 횟수, 탭 이탈 여부를 백그라운드에서 자동 측정합니다.</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+          <p class="text-xs text-slate-400">
+            * 시험 시작과 동시에 글자 수 비례 가변 타이머와 번복 감지 엔진이 백그라운드에서 작동합니다.
+          </p>
+          <button id="btn-start-intro-quiz" onclick="startQuizSession()" class="w-full sm:w-auto px-9 py-4 rounded-2xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 active:scale-95 text-white font-bold text-sm shadow-lg shadow-brand-500/25 transition flex items-center justify-center gap-2">
+            <span id="btn-start-intro-text">총 10문항 적응형 검증 시작하기</span>
+            <i class="fa-solid fa-play text-xs"></i>
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 3: ADAPTIVE QUIZ RUNNER (/quiz) -->
+    <!-- ======================================================== -->
+    <section id="view-quiz" class="app-view hidden space-y-6 animate-fadeIn">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-4 sm:p-6 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div>
+            <div class="flex flex-wrap items-center gap-2">
+              <span id="quiz-subject-indicator" class="text-xs font-bold text-indigo-700 bg-indigo-50 border border-indigo-200 px-2 py-0.5 rounded-md">
+                운영체제 (OS)
+              </span>
+              <span id="quiz-concept-indicator" class="text-xs font-bold text-brand-600 tracking-wide uppercase">
+                세부 개념 1/3 : 데드락 4대 발생 조건
+              </span>
+              <span id="badge-speed-defense" class="hidden px-2 py-0.5 rounded-md bg-amber-100 border border-amber-300 text-amber-900 text-[10px] font-black animate-pulse">
+                ⚡ 최소시간 방어: 유사 검증 출제 중
+              </span>
+            </div>
+            <div class="flex items-center gap-2 mt-1">
+              <h2 id="quiz-scenario-badge" class="text-base sm:text-lg font-black text-slate-900">
+                [Level 2: 실생활 적용 시나리오]
+              </h2>
+              <span id="quiz-level-tag" class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 border border-amber-200">
+                적용형 (CAT 기본)
+              </span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 self-start sm:self-auto">
+            <div class="flex items-center gap-3 text-xs bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2">
+              <div class="flex items-center gap-1.5 text-slate-600">
+                <i class="fa-regular fa-clock text-slate-400"></i>
+                <span>경과: <strong id="quiz-live-timer" class="text-slate-900 font-mono">0.0s</strong></span>
+              </div>
+              <div class="h-3 w-px bg-slate-200"></div>
+              <div class="flex items-center gap-1.5 text-slate-600">
+                <i class="fa-solid fa-arrow-rotate-left text-slate-400"></i>
+                <span>번복: <strong id="quiz-hesitation-count" class="text-slate-900 font-mono">0</strong>회</span>
+              </div>
+            </div>
+
+            <button type="button" onclick="openExitModal()" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-rose-50 text-slate-600 hover:text-rose-700 border border-slate-200 text-xs font-bold transition flex items-center gap-1.5" title="학습 중단 및 세션 나가기">
+              <i class="fa-solid fa-arrow-right-from-bracket text-slate-400"></i>
+              <span class="hidden md:inline">학습 중단</span>
+            </button>
+          </div>
+        </div>
+
+        <div class="space-y-1.5">
+          <div class="flex justify-between text-[11px] text-slate-500 font-medium">
+            <span>
+              글자 수 권장 시간: <strong id="quiz-standard-time" class="text-slate-700">18초</strong>
+              <span class="text-slate-400 text-[10px] ml-1">(최소 정독선: <strong id="quiz-speed-limit-label" class="text-amber-600">3.6초</strong>)</span>
+            </span>
+            <span id="quiz-time-status" class="text-emerald-600 font-semibold">정상 숙달 페이스 🟢</span>
+          </div>
+          <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden relative">
+            <div id="speed-limit-marker" class="absolute top-0 bottom-0 w-0.5 bg-amber-400 z-10" style="left: 20%;" title="최소 읽기 시간 하한선(20%)"></div>
+            <div id="quiz-timer-bar" class="h-full bg-brand-500 transition-all duration-100 rounded-full w-full"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Question Card -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div class="space-y-2">
+          <div class="flex items-center justify-between">
+            <div class="inline-flex items-center gap-1 text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
+              <i class="fa-solid fa-feather-pointed text-brand-600"></i> 상황 지문
+            </div>
+            <span id="quiz-verify-subbadge" class="hidden text-[11px] font-bold text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+              <i class="fa-solid fa-shield mr-1"></i>요행 방지 2차 검증 문항
+            </span>
+          </div>
+          <p id="quiz-question-text" class="text-base sm:text-lg font-bold text-slate-900 leading-relaxed">
+            <!-- Dynamic Question Text -->
+          </p>
+        </div>
+
+        <div id="quiz-options-container" class="space-y-3">
+          <!-- Dynamic Options Injected via JS -->
+        </div>
+
+        <!-- Feedback Panel -->
+        <div id="quiz-feedback-panel" class="hidden rounded-2xl p-5 border transition-all animate-fadeIn space-y-3">
+          <div class="flex items-center justify-between">
+            <div id="quiz-feedback-badge" class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black"></div>
+            <span id="quiz-feedback-branch-hint" class="text-xs font-bold"></span>
+          </div>
+          <div class="p-3.5 rounded-xl bg-white/90 border border-slate-200/80 text-xs text-slate-700 space-y-1">
+            <span class="font-bold text-slate-900 block flex items-center gap-1.5">
+              <i class="fa-solid fa-lightbulb text-amber-500"></i>
+              <span>핵심 해설 및 원리</span>
+            </span>
+            <p id="quiz-feedback-explanation" class="leading-relaxed text-slate-600 font-medium"></p>
+          </div>
+        </div>
+
+        <div id="tab-out-alert" class="hidden p-3 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-800 flex items-center gap-2">
+          <i class="fa-solid fa-triangle-exclamation text-amber-600"></i>
+          <span>브라우저 탭 이탈이 감지되었습니다. 풀이 지속 시간에 보정 처리됩니다.</span>
+        </div>
+
+        <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+          <span class="text-xs text-slate-400 text-center sm:text-left">
+            * 지문 글자 수 대비 20% 미만으로 성급히 풀이 시 요행 방어 로직이 작동합니다.
+          </span>
+          <div class="flex items-center gap-2 w-full sm:w-auto">
+            <button id="btn-submit-answer" onclick="submitCurrentAnswer()" disabled
+                    class="w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-sm cursor-not-allowed transition flex items-center justify-center gap-2">
+              <span>답안 제출 및 해설 확인</span>
+              <i class="fa-solid fa-check"></i>
+            </button>
+            <button id="btn-next-question" onclick="proceedToNextBranch()" class="hidden w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-sm shadow-md shadow-brand-500/25 transition flex items-center justify-center gap-2">
+              <span id="btn-next-question-text">다음 문제로 진행</span>
+              <i class="fa-solid fa-arrow-right text-xs"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 4: DIAGNOSIS MATRIX RESULT (/result) -->
+    <!-- ======================================================== -->
+    <section id="view-result" class="app-view hidden space-y-8 animate-fadeIn">
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+          <div>
+            <div class="flex items-center gap-2 mb-2">
+              <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 text-xs font-semibold border border-emerald-200">
+                <i class="fa-solid fa-circle-check"></i> 객관적 체화도 분석 완료
+              </span>
+              <span id="result-subject-badge" class="px-2 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 text-xs font-bold">
+                운영체제 (OS)
+              </span>
+            </div>
+            <h2 id="result-topic-header" class="text-2xl font-black text-slate-900">운영체제 (OS) - 데드락 (교착상태) 종합 진단 리포트</h2>
+            <p class="text-xs text-slate-500 mt-0.5">정답 여부, 가변 반응 속도, 번복 횟수, 속독/찍기 방어 로그를 교차 분석한 결과입니다.</p>
+          </div>
+          <button onclick="navigateTo('view-review')" class="px-6 py-3 rounded-xl bg-danger-600 hover:bg-danger-700 text-white font-bold text-xs shadow-md shadow-danger-500/20 transition flex items-center gap-2 self-start sm:self-auto">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>🚨 1순위 착각 복습 덱 바로가기</span>
+          </button>
+        </div>
+
+        <!-- 4 Metrics Counter Grid -->
+        <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+          <div class="p-4 rounded-xl bg-danger-50 border border-danger-100">
+            <div class="text-xs font-bold text-danger-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-triangle-exclamation"></i> 🚨 안다고 착각한 맹점
+            </div>
+            <p id="stat-count-illusion" class="text-2xl font-black text-danger-700 mt-1">1개</p>
+            <p class="text-[11px] text-danger-600 mt-0.5">정의는 외웠으나 적용 실패</p>
+          </div>
+          <div class="p-4 rounded-xl bg-amber-50 border border-amber-100">
+            <div class="text-xs font-bold text-amber-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-clock-rotate-left"></i> 🟡 아리송한 망설임
+            </div>
+            <p id="stat-count-instability" class="text-2xl font-black text-amber-700 mt-1">1개</p>
+            <p class="text-[11px] text-amber-600 mt-0.5">맞혔으나 지연/번복/찍기 감지</p>
+          </div>
+          <div class="p-4 rounded-xl bg-emerald-50 border border-emerald-100">
+            <div class="text-xs font-bold text-emerald-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-circle-check"></i> 🟢 완벽한 체득
+            </div>
+            <p id="stat-count-mastery" class="text-2xl font-black text-emerald-700 mt-1">1개</p>
+            <p class="text-[11px] text-emerald-600 mt-0.5">속도·정확도 모두 완벽</p>
+          </div>
+          <div class="p-4 rounded-xl bg-slate-100 border border-slate-200">
+            <div class="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+              <i class="fa-solid fa-xmark"></i> 🔴 아직 낯선 개념
+            </div>
+            <p id="stat-count-deficit" class="text-2xl font-black text-slate-700 mt-1">0개</p>
+            <p class="text-[11px] text-slate-500 mt-0.5">기초 개념부터 재학습 요망</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- 2x2 Objective Metacognitive Matrix -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div class="lg:col-span-7 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <div>
+            <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+              <i class="fa-solid fa-table-cells-large text-brand-600"></i>
+              2x2 객관적 메타인지 사분면 진단 & 맞춤 학습 가이드
+            </h3>
+            <p class="text-xs text-slate-500">X축: 기초 개념 이해도 | Y축: 실생활/실무 시나리오 응용력</p>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3.5 p-3.5 bg-slate-50 rounded-2xl border border-slate-200">
+            <div class="p-4 rounded-xl bg-amber-50/80 border border-amber-200 flex flex-col justify-between min-h-[175px] shadow-xs">
+              <div>
+                <div class="flex justify-between items-start">
+                  <span class="text-xs font-black text-amber-900 flex items-center gap-1">
+                    <span>🟡 아리송한 망설임</span>
+                  </span>
+                  <span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 py-0.5 rounded font-bold">확신 부족</span>
+                </div>
+                <div id="quadrant-instability-items" class="space-y-1.5 my-2.5"></div>
+              </div>
+              <div class="pt-2 border-t border-amber-200/80 text-[11px] text-amber-900/90 leading-tight">
+                <span class="font-bold block text-amber-950 mb-0.5"><i class="fa-solid fa-lightbulb text-amber-600 mr-1"></i>어떻게 공부할까요?</span>
+                비슷한 개념끼리 헷갈리거나 성급히 찍은 상태입니다. 핵심 키워드 간의 <strong>차이점을 1줄로 대조 요약</strong>하며 각인하세요.
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-emerald-50/80 border border-emerald-200 flex flex-col justify-between min-h-[175px] shadow-xs">
+              <div>
+                <div class="flex justify-between items-start">
+                  <span class="text-xs font-black text-emerald-900 flex items-center gap-1">
+                    <span>🟢 완벽한 체득</span>
+                  </span>
+                  <span class="text-[10px] bg-emerald-100 text-emerald-800 px-1.5 py-0.5 rounded font-bold">마스터</span>
+                </div>
+                <div id="quadrant-mastery-items" class="space-y-1.5 my-2.5"></div>
+              </div>
+              <div class="pt-2 border-t border-emerald-200/80 text-[11px] text-emerald-900/90 leading-tight">
+                <span class="font-bold block text-emerald-950 mb-0.5"><i class="fa-solid fa-award text-emerald-600 mr-1"></i>어떻게 공부할까요?</span>
+                실무와 시험에 즉시 활용할 수 있는 수준입니다. <strong>추가 복습 없이 다음 진도</strong>로 넘어가고, 1주일 뒤 가볍게 훑어보세요.
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-slate-100/95 border border-slate-200 flex flex-col justify-between min-h-[175px] shadow-xs">
+              <div>
+                <div class="flex justify-between items-start">
+                  <span class="text-xs font-black text-slate-800 flex items-center gap-1">
+                    <span>🔴 아직 낯선 개념</span>
+                  </span>
+                  <span class="text-[10px] bg-slate-200 text-slate-700 px-1.5 py-0.5 rounded font-bold">기초 부족</span>
+                </div>
+                <div id="quadrant-deficit-items" class="space-y-1.5 my-2.5"></div>
+              </div>
+              <div class="pt-2 border-t border-slate-200 text-[11px] text-slate-700 leading-tight">
+                <span class="font-bold block text-slate-900 mb-0.5"><i class="fa-solid fa-book-open text-slate-600 mr-1"></i>어떻게 공부할까요?</span>
+                문제를 바로 풀기보다 <strong>교재의 기초 정의와 필수 4대 조건</strong>을 먼저 차근차근 1회 정독하여 뼈대를 잡으세요.
+              </div>
+            </div>
+
+            <div class="p-4 rounded-xl bg-danger-50/95 border-2 border-danger-400 flex flex-col justify-between min-h-[175px] shadow-sm">
+              <div>
+                <div class="flex justify-between items-start">
+                  <span class="text-xs font-black text-danger-900 flex items-center gap-1">
+                    <i class="fa-solid fa-triangle-exclamation text-danger-600 animate-pulse"></i>
+                    <span>🚨 안다고 착각한 맹점</span>
+                  </span>
+                  <span class="text-[10px] bg-danger-100 text-danger-800 px-1.5 py-0.5 rounded font-extrabold">과신 주의</span>
+                </div>
+                <div id="quadrant-illusion-items" class="space-y-1.5 my-2.5"></div>
+              </div>
+              <div class="pt-2 border-t border-danger-200 text-[11px] text-danger-900 leading-tight bg-white/60 p-2 rounded-lg">
+                <span class="font-black block text-danger-950 mb-0.5 flex items-center gap-1">
+                  <i class="fa-solid fa-triangle-exclamation text-danger-600"></i>
+                  <span>1순위 긴급 처방전:</span>
+                </span>
+                용어만 외우고 상황 적용이 안 되는 상태입니다! <strong>'복습 덱'의 실생활 오답 해설</strong>을 확인하고 현실 반례를 이해하세요.
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Concept Detail Behavioral Table -->
+        <div class="lg:col-span-5 bg-white rounded-2xl border border-slate-200 shadow-sm p-6 space-y-4">
+          <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-stopwatch text-brand-600"></i>
+            행동 로그 정밀 분석표
+          </h3>
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-600 uppercase border-b border-slate-200">
+                <tr>
+                  <th class="py-2.5 px-3">세부 개념</th>
+                  <th class="py-2.5 px-3">소요시간/기준</th>
+                  <th class="py-2.5 px-3">번복</th>
+                  <th class="py-2.5 px-3">최종 판정</th>
+                </tr>
+              </thead>
+              <tbody id="result-behavior-table-body" class="divide-y divide-slate-100 text-slate-700"></tbody>
+            </table>
+          </div>
+          <div class="p-3 bg-slate-50 rounded-xl text-[11px] text-slate-500 leading-relaxed border border-slate-200 space-y-1">
+            <p><strong>💡 메타체크 판정 공식:</strong> 실제 풀이 시간 비율($R$)이 1.4를 초과하거나 번복이 3회 이상인 경우 맞혔더라도 '망설임'으로 판정합니다.</p>
+            <p class="text-amber-700 font-semibold"><i class="fa-solid fa-bolt-lightning mr-1"></i><strong>Speed Limit 방어:</strong> 기준 시간 20% 미만으로 성급히 풀이한 경우 요행으로 분류되어 추가 검증을 거칩니다.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Custom Practice Picker -->
+      <div class="bg-white rounded-2xl border border-slate-200 shadow-sm p-6 sm:p-8 space-y-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+          <div>
+            <div class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 text-xs font-bold border border-brand-200 mb-1.5">
+              <i class="fa-solid fa-bullseye"></i> 단계별 맞춤 집중 트레이닝
+            </div>
+            <h3 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              카테고리별 원하는 단계(1~3단계) 선택 풀이
+            </h3>
+            <p class="text-xs text-slate-500">
+              진단 결과를 바탕으로 보완이 필요한 개념과 난이도를 직접 골라 집중 연습할 수 있습니다.
+            </p>
+          </div>
+          <div class="flex items-center gap-2 text-xs text-slate-400 font-medium">
+            <span class="inline-block w-2 h-2 rounded-full bg-emerald-500"></span> Level 1 (개념)
+            <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span> Level 2 (적용)
+            <span class="inline-block w-2 h-2 rounded-full bg-purple-500"></span> Level 3 (심화)
+          </div>
+        </div>
+        <div id="custom-practice-container" class="grid grid-cols-1 md:grid-cols-3 gap-5"></div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW 5: PRIORITY REVIEW DECK (/review) -->
+    <!-- ======================================================== -->
+    <section id="view-review" class="app-view hidden space-y-6 animate-fadeIn">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+        <div>
+          <div class="flex items-center gap-2 text-xs font-semibold text-danger-600 mb-1">
+            <span class="px-2 py-0.5 rounded-md bg-danger-50 border border-danger-200">
+              <i class="fa-solid fa-triangle-exclamation"></i> 구조적 착각 1순위 강제 배치
+            </span>
+          </div>
+          <h2 class="text-2xl font-black text-slate-900">맞춤형 체화 복습 덱</h2>
+        </div>
+        <div class="self-start sm:self-auto shrink-0 bg-slate-100/90 p-1.5 rounded-2xl border border-slate-200 shadow-2xs">
+          <button onclick="navigateTo('view-result')" class="text-xs sm:text-sm font-bold px-4 py-2.5 rounded-xl bg-white border border-brand-200 text-brand-700 hover:bg-brand-50/80 hover:border-brand-400 hover:text-brand-800 transition flex items-center gap-2 shadow-xs group">
+            <i class="fa-solid fa-arrow-left text-xs text-brand-500 group-hover:-translate-x-0.5 transition-transform"></i>
+            <span>2×2 진단표 다시 보기</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="p-4 sm:p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-2.5">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+          <div class="flex items-center gap-2.5">
+            <span class="font-bold text-slate-800 flex items-center gap-1.5">
+              <i class="fa-solid fa-list-check text-brand-600"></i>
+              <span>복습 진행률</span>
+            </span>
+            <span id="review-progress-count" class="px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 font-black text-xs border border-brand-200">
+              0 / 3개 완료 (0%)
+            </span>
+          </div>
+          <span id="review-progress-status" class="text-slate-500 font-medium text-xs flex items-center gap-1">
+            <i class="fa-solid fa-circle-info text-slate-400"></i>
+            <span>오답 원리와 해설을 확인한 뒤 '이해 완료'를 체크하세요.</span>
+          </span>
+        </div>
+        <div class="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
+          <div id="review-progress-bar" class="h-full bg-emerald-500 transition-all duration-300 rounded-full" style="width: 0%;"></div>
+        </div>
+      </div>
+
+      <div id="review-cards-container" class="space-y-4"></div>
+
+      <div class="p-5 sm:p-6 rounded-2xl bg-white border border-slate-200 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="flex items-center gap-3 w-full sm:w-auto">
+          <div class="w-10 h-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center text-lg shrink-0 border border-emerald-200">
+            <i class="fa-solid fa-circle-check"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">오늘의 체화 복습 마무리</h4>
+            <p class="text-xs text-slate-500">완료 체크된 항목은 홈 화면의 과목별 학습 히스토리 및 통계에 실시간 갱신 반영됩니다.</p>
+          </div>
+        </div>
+        <div class="flex items-center gap-2.5 w-full sm:w-auto shrink-0">
+          <button onclick="navigateTo('view-result')" class="flex-1 sm:flex-initial px-4 py-3 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-700 text-xs font-bold transition">
+            진단표 다시 확인
+          </button>
+          <button onclick="finishAllReviewAndGoHome()" class="flex-1 sm:flex-initial px-6 py-3 rounded-xl bg-gradient-to-r from-brand-600 to-indigo-600 hover:from-brand-700 hover:to-indigo-700 active:scale-98 text-white font-bold text-xs shadow-md shadow-brand-500/25 transition flex items-center justify-center gap-2">
+            <i class="fa-solid fa-house text-xs"></i>
+            <span>모든 복습 완료 및 홈으로 이동</span>
+          </button>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- POPUP MODAL: SERVICE EXPLANATION -->
+  <div id="intro-service-modal" class="fixed inset-0 bg-slate-900/75 backdrop-blur-md z-50 hidden flex items-center justify-center p-4 animate-fadeIn">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 max-w-2xl w-full p-6 sm:p-8 relative max-h-[90vh] overflow-y-auto custom-scrollbar">
+      <button onclick="closeIntroServiceModal()" class="absolute top-5 right-5 text-slate-400 hover:text-slate-700 transition w-8 h-8 rounded-full hover:bg-slate-100 flex items-center justify-center">
+        <i class="fa-solid fa-xmark text-lg"></i>
+      </button>
+
+      <div class="space-y-2 border-b border-slate-100 pb-5 pr-8">
+        <div class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-brand-50 border border-brand-200 text-brand-700 text-xs font-extrabold">
+          <i class="fa-solid fa-brain"></i>
+          <span>메타체크(MetaCheck) 서비스 1분 가이드</span>
+        </div>
+        <h3 class="text-xl sm:text-2xl font-black text-slate-900">
+          "과목별로 진짜 아는 것과 안다고 착각한 것을 명확히 가려냅니다"
+        </h3>
+        <p class="text-xs sm:text-sm text-slate-500 leading-relaxed">
+          책을 반복해서 읽거나 강의를 들으면 뇌가 내용에 익숙해져 '완전히 이해했다'고 착각하게 됩니다. 메타체크는 이 <strong>주관적 과신의 함정</strong>을 깨부수기 위해 설계되었습니다.
+        </p>
+      </div>
+
+      <div class="py-5 space-y-4">
+        <div class="p-4 rounded-2xl bg-slate-50 border border-slate-200 flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-brand-100 text-brand-600 flex items-center justify-center text-lg font-bold shrink-0">
+            <i class="fa-solid fa-network-wired"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">1. 과목별 실생활 및 실무 시나리오 기반 체화 검증</h4>
+            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+              단순히 용어의 학술적 정의를 외웠는지 묻지 않습니다. AI가 수강 과목의 이론을 <strong>실제 일상의 딜레마 상황이나 시스템 장애 시나리오</strong>로 치환하여 진짜 응용 가능한지 테스트합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-amber-100/70 border border-amber-200 flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center text-lg font-bold shrink-0">
+            <i class="fa-solid fa-stopwatch"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">2. 속일 수 없는 정밀 행동 데이터 측정 & Speed Limit 방어</h4>
+            <p class="text-xs text-slate-600 mt-1 leading-relaxed">
+              글자 수 비례 반응 시간($T_{standard}$), 번복 횟수, 탭 이탈을 추적합니다. 특히 <strong>기준 시간의 20% 미만으로 성급히 찍은 경우 '요행'으로 간주하여 유사 변형 문항으로 재검증</strong>합니다.
+            </p>
+          </div>
+        </div>
+
+        <div class="p-4 rounded-2xl bg-danger-50/70 border border-danger-200 flex items-start gap-3.5">
+          <div class="w-10 h-10 rounded-xl bg-danger-100 text-danger-700 flex items-center justify-center text-lg font-bold shrink-0">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-danger-900">3. 2x2 매트릭스 진단 & 🚨구조적 착각 1순위 강제 복습</h4>
+            <p class="text-xs text-danger-800 mt-1 leading-relaxed">
+              기초 정의는 맞혔으나 실생활 적용에서 틀린 상태를 <strong>'구조적 착각(과신)'</strong>으로 판정합니다. 시험과 실무에서 가장 위험한 이 맹점을 복습 덱 최상단에 강제 배치합니다.
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-3">
+        <span class="text-xs text-slate-400">
+          * 지금 로그인하여 객관적 체화도 검증을 직접 체험해 보세요!
+        </span>
+        <button onclick="closeIntroServiceModal()" class="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white font-bold text-xs shadow-md transition flex items-center justify-center gap-1.5">
+          <span>확인하고 로그인하기</span>
+          <i class="fa-solid fa-arrow-right text-[10px]"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Async AI Generation Overlay -->
+  <div id="ai-loading-overlay" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm z-50 hidden flex flex-col items-center justify-center p-6 text-white text-center">
+    <div class="w-16 h-16 rounded-2xl bg-brand-600/30 border border-brand-400/40 flex items-center justify-center text-brand-300 text-3xl mb-4 animate-bounce">
+      <i class="fa-solid fa-microchip"></i>
+    </div>
+    <h3 class="text-xl font-bold mb-1">AI가 전공 이론 지식 체계를 분석 중입니다</h3>
+    <p id="loading-sub-text" class="text-sm text-slate-300 max-w-md font-normal">
+      개념 노드 3개를 도출하고 각 노드별 실생활 시나리오 문항을 설계하고 있습니다...
+    </p>
+    <div class="w-64 h-1.5 bg-white/20 rounded-full mt-6 overflow-hidden">
+      <div id="loading-bar-inner" class="h-full bg-gradient-to-r from-brand-400 to-indigo-400 w-1/3 transition-all duration-300 rounded-full"></div>
+    </div>
+  </div>
+
+  <script>
+    const APP_STATE = {
+      // User Auth
+      currentUser: {
+        isLoggedIn: false,
+        nickname: '홍길동',
+        email: 'student@university.ac.kr',
+        role: '전공 대학생'
+      },
+      authTab: 'login',
+      entryAuthTab: 'login',
+
+      // Navigation & Subject Categorization Settings
+      currentView: 'view-auth',
+      currentDomain: 'IT_DEV',
+      currentSubject: '운영체제 (OS)',
+      currentTopic: '데드락 (교착상태 4대 조건)',
+      availableSubjects: ['운영체제 (OS)', '데이터베이스 (DB)', '미시경제학', '인지심리학'],
+      currentSubjectFilter: 'ALL',
+      inputMode: 'topic',
+      studyMode: 'ADAPTIVE_SHUFFLE',
+      fixedLevelTarget: 2,
+      questionCount: 10,
+      currentConceptIndex: 0,
+      currentQuizLevel: 2,
+      isCustomPractice: false,
+      selectedOption: null,
+      hesitationCount: 0,
+      firstClickTime: null,
+      startTime: null,
+      timerInterval: null,
+      currentQuizDurationMs: 0,
+      tabOutOccurred: false,
+      tabOutStart: null,
+      tabOutTotalDuration: 0,
+
+      // Speed Limit Defense States
+      isSpeedDefenseTriggered: false,
+      pendingSpeedVerificationQuiz: null,
+
+      // Results of current test session
+      sessionResults: [],
+      currentReviewEvaluations: null,
+
+      // Historical Archive with Subject Tags
+      studyHistory: [
+        {
+          id: 'hist-000',
+          date: '2026. 09. 16',
+          daysAgo: 0,
+          subject: '운영체제 (OS)',
+          topic: '데드락 (교착상태 4대 조건)',
+          domain: 'IT_DEV',
+          domainLabel: 'IT / 컴공',
+          mode: 'FIXED_LEVEL',
+          modeLabel: 'Level 2 단독',
+          counts: { illusion: 0, instability: 3, mastery: 0, deficit: 0 },
+          avgSpeed: '0.8초',
+          hesitationTotal: 0,
+          hasUnresolvedIllusion: false,
+          keyIllusionConcept: null
+        },
+        {
+          id: 'hist-001',
+          date: '2026. 09. 14',
+          daysAgo: 2,
+          subject: '데이터베이스 (DB)',
+          topic: '트랜잭션 격리수준 (Isolation Level)',
+          domain: 'IT_DEV',
+          domainLabel: 'IT / 컴공',
+          mode: 'ADAPTIVE_SHUFFLE',
+          modeLabel: '적응형 셔플 (CAT)',
+          counts: { illusion: 1, instability: 1, mastery: 1, deficit: 0 },
+          avgSpeed: '16.8초',
+          hesitationTotal: 2,
+          hasUnresolvedIllusion: true,
+          keyIllusionConcept: 'Phantom Read와 Repeatable Read 격리'
+        },
+        {
+          id: 'hist-002',
+          date: '2026. 09. 12',
+          daysAgo: 4,
+          subject: '미시경제학',
+          topic: '기회비용과 매몰비용 오류',
+          domain: 'BUSINESS_ECONOMY',
+          domainLabel: '경영 / 경제',
+          mode: 'FIXED_LEVEL',
+          modeLabel: '2단계(실전) 단독',
+          counts: { illusion: 0, instability: 1, mastery: 2, deficit: 0 },
+          avgSpeed: '12.4초',
+          hesitationTotal: 1,
+          hasUnresolvedIllusion: false,
+          keyIllusionConcept: null
+        },
+        {
+          id: 'hist-003',
+          date: '2026. 09. 08',
+          daysAgo: 8,
+          subject: '인지심리학',
+          topic: '확증편향과 앵커링 효과',
+          domain: 'PSYCHOLOGY',
+          domainLabel: '심리학',
+          mode: 'ADAPTIVE_SHUFFLE',
+          modeLabel: '적응형 셔플 (CAT)',
+          counts: { illusion: 1, instability: 0, mastery: 1, deficit: 1 },
+          avgSpeed: '18.1초',
+          hesitationTotal: 4,
+          hasUnresolvedIllusion: true,
+          keyIllusionConcept: '사후확신 편향과 앵커링'
+        }
+      ]
+    };
+
+    const TOPIC_DATABASE = {
+      'IT_DEV': {
+        title: '운영체제 데드락 (교착상태)',
+        concepts: [
+          {
+            id: 'c1',
+            name: '데드락 4대 발생 조건',
+            desc: '상호배제, 점유대기, 비선점, 순환대기 조건의 본질과 필연성',
+            quizzes: {
+              2: {
+                level: 2,
+                title: '[Level 2: 실생활 적용 시나리오]',
+                tag: '실생활 상황 분석',
+                text: '단일 차선 다리 양 끝에서 두 대의 차량이 서로 마주보고 진입하여 정중앙에서 마주쳤습니다. 두 운전자 모두 양보를 완강히 거부하며 버티고 있습니다. 이 현실 시나리오에서 데드락 4대 조건 중 "비선점(Non-preemption)"에 정확히 대응되는 현실 상황은 무엇입니까?',
+                options: [
+                  '다리 폭이 좁아서 한 번에 자동차 한 대만 통과할 수 있는 상태',
+                  '상대방이 먼저 후진해 비켜주기만을 기다리며 자신의 차로를 계속 점유하고 있는 상태',
+                  '외부의 견인차나 교통경찰이 개입하여 상대방 차를 강제로 치울 수 없는 상태',
+                  '두 차량이 서로 상대방이 차지하고 있는 도로 공간을 동시에 비워달라고 요구하는 상태'
+                ],
+                correctIndex: 2,
+                charLength: 175,
+                explanation: '비선점(Non-preemption)은 자원을 점유하고 있는 프로세스가 작업을 끝내기 전까지 외부에서 강제로 빼앗을 수 없는 조건입니다. 현실에서 다른 공권력이나 견인차가 강제로 차를 끌어낼 수 없는 제약이 이에 해당합니다.'
+              },
+              '2_verify': {
+                level: 2,
+                title: '[Level 2: 요행 방지 2차 검증 변형 시나리오]',
+                tag: '속독/찍기 요행 검증',
+                text: '[Speed Limit 방어 검증] 대학교 수강신청 서버에서 학생 A는 컴퓨터공학 개론 수업의 남은 1자리를 잡았고, 학생 B는 알고리즘 수업의 남은 1자리를 잡았습니다. 두 학생 모두 상대방의 과목으로 맞교환(Trade)을 원하며 취소하지 않고 대기 중입니다. 이때 데드락 4대 조건 중 "점유 및 대기(Hold and Wait)"에 부합하는 현실 행동은 무엇입니까?',
+                options: [
+                  '수강 인원 정원이 1명으로 제한되어 있어 두 명이 동시에 해당 좌석에 등록할 수 없는 상태',
+                  '자신이 획득한 과목을 취소하지 않은 채 쥐고 있으면서, 상대방이 가진 과목이 취소되기를 기다리는 상태',
+                  '학과 사무실 조교가 두 학생의 수강 내역을 강제로 삭제할 수 없는 시스템 설정',
+                  '두 학생 간의 수강 교환 요청이 서로 맞물려 원형 대기 고리를 형성한 상태'
+                ],
+                correctIndex: 1,
+                charLength: 190,
+                explanation: '점유 및 대기(Hold and Wait)는 최소한 하나의 자원을 점유한 채, 다른 프로세스가 점유 중인 자원을 추가로 얻기 위해 대기하는 상태를 뜻합니다.'
+              },
+              3: {
+                level: 3,
+                title: '[Level 3: 실무 엣지케이스 트러블슈팅]',
+                tag: '동시성 코드 디버깅',
+                text: '금융 서버에서 사용자 A가 B에게 100원을 이체하고, 동시에 사용자 B가 A에게 200원을 이체하는 멀티스레드 환경입니다. 각 스레드가 sender의 락(Lock)을 먼저 획득한 후 receiver의 락을 얻으려다 데드락이 발생했습니다. "순환 대기(Circular Wait)"를 원천 차단하여 이 데드락을 영구 해결하는 가장 올바른 실무 설계는 무엇입니까?',
+                options: [
+                  '이체 요청이 실패할 경우 스레드를 3초간 sleep 시킨 후 다시 시도한다.',
+                  '송금자와 수취인의 계좌 ID 번호를 비교하여, 항상 ID 숫자가 작은 계좌의 락을 먼저 획득하도록 강제한다.',
+                  '락 획득 시 타임아웃을 10초로 길게 설정하여 락이 풀릴 때까지 대기 시간을 늘린다.',
+                  '모든 이체 작업을 단일 글로벌 락(Global Lock) 하나로만 동기화하여 동시 처리를 포기한다.'
+                ],
+                correctIndex: 1,
+                charLength: 210,
+                explanation: '순환 대기 조건은 모든 자원에 고유한 순서(Order)를 부여하고, 반드시 오름차순(또는 정해진 단방향 순서)으로만 자원을 요청하게 함으로써 수학적으로 원천 방지할 수 있습니다.'
+              },
+              1: {
+                level: 1,
+                title: '[Level 1: 핵심 용어 및 정의 식별]',
+                tag: '기초 개념 인지',
+                text: '운영체제에서 교착상태(Deadlock)가 발생하기 위해 반드시 동시에 만족해야 하는 4가지 필요조건에 포함되지 않는 것은 무엇입니까?',
+                options: [
+                  '상호 배제 (Mutual Exclusion)',
+                  '점유 및 대기 (Hold and Wait)',
+                  '우선순위 역전 (Priority Inversion)',
+                  '비선점 (Non-preemption)'
+                ],
+                correctIndex: 2,
+                charLength: 120,
+                explanation: '데드락 4대 조건은 상호배제, 점유대기, 비선점, 순환대기입니다. 우선순위 역전(Priority Inversion)은 실시간 스케줄링에서 발생하는 현상으로 데드락 4대 조건에 속하지 않습니다.'
+              }
+            }
+          },
+          {
+            id: 'c2',
+            name: '은행원 알고리즘과 회피(Avoidance)',
+            desc: '자원 할당 그래프와 안전 상태(Safe State) 판별 알고리즘',
+            quizzes: {
+              2: {
+                level: 2,
+                title: '[Level 2: 실무 시나리오 적용]',
+                tag: '클라우드 리소스 할당',
+                text: '클라우드 VM 풀에 남은 가용 GPU가 총 3장입니다. 작업 P1은 향후 최대 2장, P2는 최대 4장(현재 1장 보유), P3은 최대 2장을 추가 요구할 수 있습니다. 시스템이 안정 상태(Safe State)를 유지하기 위해 지금 즉시 추가 할당 요청을 승인해도 안전한 프로세스는 무엇입니까?',
+                options: [
+                  'P2에게 가용 GPU 3장을 모두 일괄 배정한다.',
+                  'P1 또는 P3에게 요구량을 우선 할당하여 안전 시퀀스를 확보한다.',
+                  '세 프로세스 모두 위험하므로 어떤 요청도 승인하지 않고 시스템을 정지시킨다.',
+                  'P2에게 1장, P1에게 2장을 분할 할당한다.'
+                ],
+                correctIndex: 1,
+                charLength: 180,
+                explanation: '은행원 알고리즘에서는 현재 가용 자원으로 최소한 한 프로세스의 최대 요구량을 완전히 충족시켜 종료 및 반환을 이끌어낼 수 있어야 Safe State가 유지됩니다.'
+              },
+              '2_verify': {
+                level: 2,
+                title: '[Level 2: 요행 방지 2차 검증 변형 시나리오]',
+                tag: '속독/찍기 요행 검증',
+                text: '[Speed Limit 방어 검증] 은행 창구에 3명의 대출 신청자가 있습니다. 은행의 남은 잔고는 50억입니다. A는 추가 30억, B는 추가 70억, C는 추가 60억이 더 필요해야 사업을 완료하고 대출금을 상환합니다. 교착상태를 방지하며 안전 시퀀스를 만들기 위해 은행이 지금 즉시 자금을 전액 지원해야 할 올바른 대출자는 누구입니까?',
+                options: [
+                  '추가 자금이 가장 많이 필요한 대출자 B',
+                  '남은 50억 잔고로 최대 요구량을 완전히 충족시킬 수 있는 대출자 A',
+                  '수익성이 가장 좋아 보이는 대출자 C',
+                  '세 명에게 50억을 균등하게 분할하여 나누어 대출'
+                ],
+                correctIndex: 1,
+                charLength: 185,
+                explanation: '은행원 알고리즘의 본질은 현재 가용 잔고로 최대 필요량을 온전히 채워주어 사업을 끝내고 자금을 회수할 수 있는 대상을 우선 지원하는 것입니다.'
+              },
+              3: {
+                level: 3,
+                title: '[Level 3: 반례 및 한계점 분석]',
+                tag: '실무 한계점 도출',
+                text: '현대 상용 범용 운영체제(Linux, Windows)에서 이론적으로 완벽한 은행원 알고리즘을 실제 프로세스 스케줄러로 채택하지 않는 결정적 이유는 무엇입니까?',
+                options: [
+                  '연산 알고리즘의 시간 복잡도가 O(N!)에 달해 CPU 연산이 불가능하기 때문에',
+                  '프로세스가 시작될 때 자신이 앞으로 사용할 최대 자원 요구량을 사전에 미리 아는 것이 불가능하기 때문에',
+                  '멀티코어 CPU 환경에서는 상호배제 조건 자체가 발생하지 않기 때문에',
+                  '은행원 알고리즘은 단일 인스턴스 자원에서는 수학적으로 동작하지 않기 때문에'
+                ],
+                correctIndex: 1,
+                charLength: 195,
+                explanation: '실제 프로그램은 동적으로 런타임에 메모리와 파일을 요청하므로, 사전에 최대 자원 소요량을 시스템에 통보할 수 없어 현실 범용 OS에 적용할 수 없습니다.'
+              },
+              1: {
+                level: 1,
+                title: '[Level 1: 개념 원리 판별]',
+                tag: '이론 조건 확인',
+                text: '은행원 알고리즘에서 시스템이 "안전 상태(Safe State)"에 있다는 것의 정확한 정의는 무엇입니까?',
+                options: [
+                  '현재 시스템에 할당된 자원이 전혀 없는 초기 상태',
+                  '모든 프로세스가 교착상태 없이 정상적으로 끝날 수 있는 실행 순서(Safe Sequence)가 최소 1개 이상 존재하는 상태',
+                  '새로운 프로세스의 진입이 물리적으로 차단된 상태',
+                  'CPU 사용률이 100%에 도달하여 대기 큐가 비어있는 상태'
+                ],
+                correctIndex: 1,
+                charLength: 140,
+                explanation: 'Safe State는 최소 1개 이상의 Safe Sequence가 존재하여 모든 프로세스가 언젠가 자원을 반환받고 완료될 수 있는 보장 상태를 의미합니다.'
+              }
+            }
+          },
+          {
+            id: 'c3',
+            name: '교착상태 탐지 및 복구 기법',
+            desc: '대기 그래프(WFG), 희생자 선택(Victim Selection), 기아 방지',
+            quizzes: {
+              2: {
+                level: 2,
+                title: '[Level 2: 실무 트러블슈팅]',
+                tag: 'DB 데드락 킬러',
+                text: '대규모 RDBMS에서 두 트랜잭션 간 교착상태가 감지되어 DB 엔진이 한 트랜잭션을 강제 롤백(Kill)하기로 결정했습니다. 이때 시스템 전체의 낭비 비용(Cost)을 최소화하기 위해 "희생자(Victim)"로 선정하기에 가장 적절한 트랜잭션은 무엇입니까?',
+                options: [
+                  '이미 30분 동안 수백만 건의 데이터를 갱신하여 롤백 비용이 가장 큰 트랜잭션',
+                  '방금 시작되어 아직 소수의 행만 잠갔으며 롤백 비용이 가장 저렴한 트랜잭션',
+                  '과거에 이미 10번 연속으로 롤백되어 대기 중인 트랜잭션',
+                  '가장 높은 관리자(Admin) 권한으로 실행 중인 트랜잭션'
+                ],
+                correctIndex: 1,
+                charLength: 190,
+                explanation: '희생자 선택 시 시스템 재작업 비용을 최소화하기 위해 지금까지 소비한 자원이 적고 롤백하기 가장 수월한 트랜잭션을 우선 희생자로 선정합니다.'
+              },
+              '2_verify': {
+                level: 2,
+                title: '[Level 2: 요행 방지 2차 검증 변형 시나리오]',
+                tag: '속독/찍기 요행 검증',
+                text: '[Speed Limit 방어 검증] 마이크로서비스 아키텍처 환경에서 분산 트랜잭션 교착상태가 발생했습니다. 서비스 복구를 위해 하나의 인스턴스를 강제 재시작하려 합니다. "희생자 선정 시 시스템 오버헤드 최소화" 원칙에 따라 가장 먼저 재시작 대상으로 고려해야 할 서비스는 무엇입니까?',
+                options: [
+                  '진행 중인 결제 트랜잭션의 99%를 이미 완결한 핵심 결제 게이트웨이 서비스',
+                  '방금 큐에서 작업을 꺼내어 아직 외부 DB를 변경하지 않은 가벼운 알림 발송 워커 서비스',
+                  '데이터베이스 스키마 마이그레이션을 단독으로 전담하고 있는 마스터 노드',
+                  '지난 1시간 동안 가장 많은 메모리와 CPU 연산을 집약적으로 소모한 머신러닝 분석 서비스'
+                ],
+                correctIndex: 1,
+                charLength: 195,
+                explanation: '희생자 선택은 롤백이나 재작업에 소모되는 시스템 비용이 가장 미미한 가벼운 작업(Work)을 우선 선정하는 것이 정석입니다.'
+              },
+              3: {
+                level: 3,
+                title: '[Level 3: 복합 장애 분석]',
+                tag: '기아(Starvation) 방어',
+                text: '위의 교착상태 복구 과정에서 오직 "최소 롤백 비용"만을 유일한 기준으로 희생자를 선택할 때 발생할 수 있는 치명적 맹점과 그 보완책은 무엇입니까?',
+                options: [
+                  '데드락이 영구히 해결되지 않으므로 전체 데이터베이스를 재부팅해야 한다.',
+                  '특정 가벼운 트랜잭션이 영원히 완료되지 못하는 기아(Starvation)가 발생하므로, 롤백 횟수를 비용 인자에 가산해야 한다.',
+                  'CPU 캐시 일관성이 깨지므로 하드웨어 레벨에서 버스 락을 걸어야 한다.',
+                  '로그 파일이 즉시 가득 차므로 WAL(Write-Ahead Logging) 기능을 비활성화해야 한다.'
+                ],
+                correctIndex: 1,
+                charLength: 185,
+                explanation: '비용만 따지면 동일한 트랜잭션이 연속해서 희생자로 뽑히는 기아 현상이 발생하므로, 희생자 평가 공식에 "누적 롤백 횟수"를 반영하여 우선순위를 낮춰주어야 합니다.'
+              },
+              1: {
+                level: 1,
+                title: '[Level 1: 개념 정의]',
+                tag: '기본 용어 확인',
+                text: '자원 할당 그래프에서 단일 인스턴스 자원들만 존재할 때, 교착상태의 존재 여부를 판정하는 필요충분조건은 무엇입니까?',
+                options: [
+                  '그래프에 사이클(Cycle)이 존재하는가',
+                  '모든 자원이 프로세스에 할당되었는가',
+                  '대기 중인 스레드 수가 CPU 코어 수를 넘는가',
+                  '프로세스 간 부모-자식 관계가 형성되어 있는가'
+                ],
+                correctIndex: 0,
+                charLength: 125,
+                explanation: '단일 자원 유형인 경우, 자원 할당 그래프에 사이클이 존재하는 것이 데드락의 필요충분조건입니다.'
+              }
+            }
+          }
+        ]
+      }
+    };
+
+    function updateAuthHeader() {
+      const loggedInDiv = document.getElementById('auth-header-logged-in');
+      const loggedOutDiv = document.getElementById('auth-header-logged-out');
+
+      if (APP_STATE.currentUser.isLoggedIn) {
+        loggedInDiv.classList.remove('hidden');
+        loggedOutDiv.classList.add('hidden');
+        document.getElementById('user-name-display').innerText = APP_STATE.currentUser.nickname;
+        document.getElementById('user-role-display').innerText = APP_STATE.currentUser.role;
+        document.getElementById('user-avatar-badge').innerText = APP_STATE.currentUser.nickname.charAt(0);
+      } else {
+        loggedInDiv.classList.add('hidden');
+        loggedOutDiv.classList.remove('hidden');
+      }
+    }
+
+    function openIntroServiceModal() {
+      document.getElementById('intro-service-modal').classList.remove('hidden');
+    }
+
+    function closeIntroServiceModal() {
+      document.getElementById('intro-service-modal').classList.add('hidden');
+    }
+
+    function switchEntryAuthTab(tab) {
+      APP_STATE.entryAuthTab = tab;
+      const tabLogin = document.getElementById('entry-tab-login');
+      const tabReg = document.getElementById('entry-tab-register');
+      const fieldName = document.getElementById('entry-field-name');
+      const fieldRole = document.getElementById('entry-field-role');
+      const submitBtn = document.getElementById('entry-submit-btn');
+      const title = document.getElementById('login-page-title');
+      const subtitle = document.getElementById('login-page-subtitle');
+
+      if (tab === 'login') {
+        tabLogin.className = "flex-1 pb-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600 transition";
+        tabReg.className = "flex-1 pb-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition";
+        fieldName.classList.add('hidden');
+        fieldRole.classList.add('hidden');
+        submitBtn.innerHTML = `<span>메타체크 로그인하고 학습 시작</span><i class="fa-solid fa-arrow-right text-xs"></i>`;
+        title.innerText = "학습 계정 로그인";
+        subtitle.innerText = "과목별 메타인지 진단 결과와 오답 복습 덱을 안전하게 보관하세요.";
+      } else {
+        tabReg.className = "flex-1 pb-3 text-xs font-bold border-b-2 border-brand-600 text-brand-600 transition";
+        tabLogin.className = "flex-1 pb-3 text-xs font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition";
+        fieldName.classList.remove('hidden');
+        fieldRole.classList.remove('hidden');
+        submitBtn.innerHTML = `<span>회원가입 완료 및 대시보드 진입</span><i class="fa-solid fa-user-plus text-xs"></i>`;
+        title.innerText = "메타체크 신규 회원가입";
+        subtitle.innerText = "30초 만에 가입하고 전공 이론 실전 체화 테스트를 시작하세요.";
+      }
+    }
+
+    function handleEntryAuthSubmit(e) {
+      e.preventDefault();
+      const email = document.getElementById('entry-input-email').value.trim();
+      const name = document.getElementById('entry-input-name').value.trim() || '홍길동';
+      const role = document.getElementById('entry-input-role').value;
+
+      APP_STATE.currentUser = {
+        isLoggedIn: true,
+        nickname: APP_STATE.entryAuthTab === 'login' ? (APP_STATE.currentUser.nickname || '홍길동') : name,
+        email: email,
+        role: APP_STATE.entryAuthTab === 'login' ? (APP_STATE.currentUser.role || '전공 대학생') : role
+      };
+
+      updateAuthHeader();
+      showToast(`${APP_STATE.currentUser.nickname}님, 환영합니다!`, 'success');
+      navigateTo('view-home');
+    }
+
+    function setDemoAuthCredentialsOnLogin() {
+      document.getElementById('entry-input-email').value = 'student@university.ac.kr';
+      document.getElementById('entry-input-password').value = 'password123';
+      document.getElementById('entry-input-name').value = '홍길동';
+      showToast('데모 전공생 계정 정보가 입력되었습니다.', 'info');
+    }
+
+    function loginAsGuest() {
+      APP_STATE.currentUser = {
+        isLoggedIn: true,
+        nickname: '게스트 학습자',
+        email: 'guest@metacheck.io',
+        role: '체험 사용자'
+      };
+      updateAuthHeader();
+      showToast('게스트 모드로 접속했습니다. 세션을 자유롭게 체험해보세요!', 'info');
+      navigateTo('view-home');
+    }
+
+    function handleLogout() {
+      APP_STATE.currentUser.isLoggedIn = false;
+      updateAuthHeader();
+      showToast('로그아웃되었습니다. 로그인 화면으로 이동합니다.', 'info');
+      navigateTo('view-auth');
+    }
+
+    function openAuthModal(tab) {
+      navigateTo('view-auth');
+      switchEntryAuthTab(tab);
+    }
+
+    let currentHistoryStatusFilter = 'ALL';
+
+    function renderSubjectFilterChips() {
+      const container = document.getElementById('subject-filter-chips');
+      if (!container) return;
+
+      container.innerHTML = '';
+
+      // All Subjects Chip
+      const allBtn = document.createElement('button');
+      allBtn.type = 'button';
+      allBtn.onclick = () => selectSubjectFilter('ALL', allBtn);
+      allBtn.className = (APP_STATE.currentSubjectFilter === 'ALL')
+        ? "subj-chip px-3 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1"
+        : "subj-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1";
+      allBtn.innerHTML = `<i class="fa-solid fa-layer-group text-[10px]"></i><span>전체 과목</span>`;
+      container.appendChild(allBtn);
+
+      // Unique Subject Chips
+      APP_STATE.availableSubjects.forEach(subject => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.onclick = () => selectSubjectFilter(subject, btn);
+        const isActive = (APP_STATE.currentSubjectFilter === subject);
+        btn.className = isActive
+          ? "subj-chip px-3 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1"
+          : "subj-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1";
+        btn.innerHTML = `<i class="fa-solid fa-book-bookmark text-[10px]"></i><span>${subject}</span>`;
+        container.appendChild(btn);
+      });
+    }
+
+    function selectSubjectFilter(subject, btn) {
+      APP_STATE.currentSubjectFilter = subject;
+      document.querySelectorAll('.subj-chip').forEach(b => {
+        b.className = "subj-chip px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1";
+      });
+      btn.className = "subj-chip px-3 py-1.5 rounded-xl bg-brand-600 text-white font-bold text-xs transition shadow-xs flex items-center gap-1";
+      renderHistorySessions();
+    }
+
+    function renderHistorySessions() {
+      const container = document.getElementById('history-session-list');
+      if (!container) return;
+
+      let list = [...APP_STATE.studyHistory];
+
+      // 1. Subject filter
+      if (APP_STATE.currentSubjectFilter !== 'ALL') {
+        list = list.filter(item => item.subject === APP_STATE.currentSubjectFilter);
+      }
+
+      // 2. Status filter
+      if (currentHistoryStatusFilter === 'ILLUSION') {
+        list = list.filter(item => item.counts.illusion > 0);
+      } else if (currentHistoryStatusFilter === 'MASTERY') {
+        list = list.filter(item => item.counts.illusion === 0);
+      }
+
+      // Update counters
+      const totalAll = APP_STATE.studyHistory.length;
+      const totalIllusion = APP_STATE.studyHistory.filter(h => h.counts.illusion > 0).length;
+      const totalMastery = APP_STATE.studyHistory.filter(h => h.counts.illusion === 0).length;
+
+      document.getElementById('count-history-all').innerText = totalAll;
+      document.getElementById('count-history-illusion').innerText = totalIllusion;
+      document.getElementById('count-history-mastery').innerText = totalMastery;
+      document.getElementById('hist-total-sessions').innerText = `${totalAll}개`;
+
+      container.innerHTML = '';
+
+      if (list.length === 0) {
+        container.innerHTML = `
+          <div class="p-8 text-center bg-slate-50 border border-slate-200 rounded-2xl text-xs text-slate-400 space-y-1">
+            <i class="fa-regular fa-folder-open text-2xl text-slate-300 block mb-2"></i>
+            <span>선택한 조건 ('${APP_STATE.currentSubjectFilter}')에 일치하는 학습 이력이 없습니다.</span>
+          </div>
+        `;
+        return;
+      }
+
+      list.forEach(item => {
+        const card = document.createElement('div');
+        const hasIllusion = item.counts.illusion > 0;
+        const days = typeof item.daysAgo === 'number' ? item.daysAgo : 0;
+
+        let daysBadgeHtml = '';
+        if (days === 0) {
+          daysBadgeHtml = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-emerald-50 text-emerald-700 border border-emerald-200"><i class="fa-solid fa-sparkles mr-1 text-emerald-500"></i>오늘 학습함 (0일째)</span>`;
+        } else if (days <= 3) {
+          daysBadgeHtml = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-blue-50 text-brand-700 border border-brand-200"><i class="fa-solid fa-clock mr-1 text-brand-500"></i>공부한 지 ${days}일 지남 (복습 적기)</span>`;
+        } else if (days <= 6) {
+          daysBadgeHtml = `<span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-amber-50 text-amber-800 border border-amber-200"><i class="fa-solid fa-bell mr-1 text-amber-600"></i>공부한 지 ${days}일 지남 (기억 감쇠)</span>`;
+        } else {
+          daysBadgeHtml = `<span class="text-[10px] font-black px-2 py-0.5 rounded-md bg-rose-50 text-rose-700 border border-rose-200 animate-pulse-subtle"><i class="fa-solid fa-triangle-exclamation mr-1 text-rose-500"></i>공부한 지 ${days}일 지남 (망각 위험)</span>`;
+        }
+
+        card.className = `p-4 sm:p-5 rounded-2xl border transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+          hasIllusion 
+            ? 'bg-danger-50/20 border-danger-200 hover:border-danger-400 hover:shadow-sm' 
+            : 'bg-white border-slate-200 hover:border-brand-300 hover:shadow-xs'
+        }`;
+
+        card.innerHTML = `
+          <div class="space-y-2 flex-1">
+            <div class="flex flex-wrap items-center gap-2">
+              <span class="text-[11px] font-extrabold px-2.5 py-0.5 rounded-md bg-indigo-50 border border-indigo-200 text-indigo-700 flex items-center gap-1">
+                <i class="fa-solid fa-book-bookmark text-[10px]"></i>
+                <span>${item.subject || '전공 과목'}</span>
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-slate-100 text-slate-600">
+                ${item.domainLabel}
+              </span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-md bg-brand-50 text-brand-600 border border-brand-200">
+                ${item.modeLabel}
+              </span>
+              <span class="text-[11px] text-slate-400 ml-auto md:ml-0 flex items-center gap-1.5 flex-wrap">
+                <span><i class="fa-regular fa-calendar mr-1"></i>${item.date}</span>
+                ${daysBadgeHtml}
+              </span>
+            </div>
+
+            <div>
+              <h4 class="text-sm sm:text-base font-bold text-slate-900 flex items-center gap-2">
+                ${item.topic}
+                ${hasIllusion ? '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-danger-100 text-danger-700 animate-pulse-subtle">🚨 과신 착각 미해결</span>' : '<span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">🟢 체화 완료</span>'}
+              </h4>
+              ${item.keyIllusionConcept ? `<p class="text-xs text-danger-600 mt-0.5 font-medium"><i class="fa-solid fa-triangle-exclamation mr-1"></i>취약 맹점: ${item.keyIllusionConcept}</p>` : `<p class="text-xs text-slate-400 mt-0.5">평균 풀이 ${item.avgSpeed} · 번복 ${item.hesitationTotal}회</p>`}
+            </div>
+
+            <div class="flex items-center gap-2 pt-1 text-[11px] font-semibold">
+              <span class="px-2 py-0.5 rounded-md bg-danger-100 text-danger-800">🚨 착각 ${item.counts.illusion}</span>
+              <span class="px-2 py-0.5 rounded-md bg-amber-100 text-amber-800">🟡 불안정 ${item.counts.instability}</span>
+              <span class="px-2 py-0.5 rounded-md bg-emerald-100 text-emerald-800">🟢 체화 ${item.counts.mastery}</span>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2 shrink-0 pt-2 md:pt-0 border-t md:border-t-0 border-slate-100">
+            ${hasIllusion ? `
+              <button onclick="launchReviewFromHistory('${item.subject || ''}', '${item.topic}')" class="px-3.5 py-2 rounded-xl bg-danger-600 hover:bg-danger-700 text-white font-bold text-xs shadow-xs transition flex items-center gap-1.5">
+                <i class="fa-solid fa-triangle-exclamation"></i>
+                <span>착각 복습 덱</span>
+              </button>
+            ` : ''}
+            <button onclick="quickStartTopic('${item.subject || '운영체제 (OS)'}', '${item.topic}', '${item.domain}')" class="px-3.5 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-xs transition flex items-center gap-1.5">
+              <i class="fa-solid fa-rotate-right text-slate-500"></i>
+              <span>세션 재시험</span>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function filterHistory(type, btn) {
+      currentHistoryStatusFilter = type;
+      document.querySelectorAll('.history-filter-btn').forEach(b => {
+        b.className = "history-filter-btn px-3.5 py-2 rounded-xl text-slate-600 hover:text-slate-900 transition";
+      });
+      btn.className = "history-filter-btn px-3.5 py-2 rounded-xl bg-white shadow-xs text-brand-600 transition";
+      renderHistorySessions();
+    }
+
+    function launchReviewFromHistory(subject, topic) {
+      if (subject) APP_STATE.currentSubject = subject;
+      if (topic) APP_STATE.currentTopic = topic;
+      showToast(`'${subject ? `[${subject}] ` : ''}${topic}' 세션의 복습 덱으로 진입합니다.`, 'info');
+      evaluateAndShowResults();
+      navigateTo('view-review');
+    }
+
+    function navigateTo(viewId) {
+      document.querySelectorAll('.app-view').forEach(view => {
+        view.classList.add('hidden');
+      });
+      const target = document.getElementById(viewId);
+      if (target) {
+        target.classList.remove('hidden');
+        APP_STATE.currentView = viewId;
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+      }
+
+      if (viewId === 'view-home') {
+        renderSubjectFilterChips();
+        renderHistorySessions();
+      }
+    }
+
+    function showToast(message, type = 'info') {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      const bgColors = {
+        info: 'bg-slate-900 text-white',
+        danger: 'bg-danger-600 text-white',
+        warning: 'bg-amber-500 text-white',
+        success: 'bg-emerald-600 text-white'
+      };
+      toast.className = `${bgColors[type] || bgColors.info} px-4 py-2.5 rounded-xl shadow-lg text-xs font-semibold flex items-center gap-2 pointer-events-auto transform transition-all duration-200 translate-y-2 opacity-0`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-info"></i><span>${message}</span>`;
+      container.appendChild(toast);
+
+      setTimeout(() => {
+        toast.classList.remove('translate-y-2', 'opacity-0');
+      }, 10);
+
+      setTimeout(() => {
+        toast.classList.add('opacity-0', 'translate-y-2');
+        setTimeout(() => toast.remove(), 200);
+      }, 3000);
+    }
+
+    function selectDomain(btn, domain) {
+      document.querySelectorAll('.domain-btn').forEach(b => {
+        b.classList.remove('bg-white', 'shadow-xs', 'text-brand-600');
+        b.classList.add('text-slate-600');
+      });
+      btn.classList.add('bg-white', 'shadow-xs', 'text-brand-600');
+      btn.classList.remove('text-slate-600');
+      APP_STATE.currentDomain = domain;
+    }
+
+    function switchInputMode(mode) {
+      APP_STATE.inputMode = mode;
+      const tabTopic = document.getElementById('tab-mode-topic');
+      const tabPdf = document.getElementById('tab-mode-pdf');
+      const contentTopic = document.getElementById('content-mode-topic');
+      const contentPdf = document.getElementById('content-mode-pdf');
+
+      if (mode === 'topic') {
+        tabTopic.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600 transition flex items-center justify-center gap-2";
+        tabPdf.className = "flex-1 pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition flex items-center justify-center gap-2";
+        contentTopic.classList.remove('hidden');
+        contentPdf.classList.add('hidden');
+      } else {
+        tabPdf.className = "flex-1 pb-3 text-sm font-bold border-b-2 border-brand-600 text-brand-600 transition flex items-center justify-center gap-2";
+        tabTopic.className = "flex-1 pb-3 text-sm font-semibold border-b-2 border-transparent text-slate-400 hover:text-slate-600 transition flex items-center justify-center gap-2";
+        contentPdf.classList.remove('hidden');
+        contentTopic.classList.add('hidden');
+      }
+    }
+
+    function setSubjectValue(subject, domain) {
+      const subjInput = document.getElementById('input-subject-name');
+      const pdfSubj = document.getElementById('pdf-input-subject');
+      if (subjInput) subjInput.value = subject;
+      if (pdfSubj) pdfSubj.value = subject;
+      APP_STATE.currentSubject = subject;
+
+      if (domain) {
+        const domainBtn = Array.from(document.querySelectorAll('.domain-btn')).find(b => b.innerText.includes(domain === 'IT_DEV' ? 'IT' : (domain === 'BUSINESS_ECONOMY' ? '경영' : '심리')));
+        if (domainBtn) selectDomain(domainBtn, domain);
+      }
+      showToast(`수강 과목이 '${subject}'(으)로 선택되었습니다.`, 'info');
+    }
+
+    function setSubjectAndTopic(subject, topic, domain) {
+      setSubjectValue(subject, domain);
+      document.getElementById('input-topic-text').value = topic;
+      APP_STATE.currentTopic = topic;
+      showToast(`[${subject}] ${topic} 프리셋이 적용되었습니다.`, 'info');
+    }
+
+    function clearTopicInput() {
+      document.getElementById('input-topic-text').value = '';
+      document.getElementById('input-topic-text').focus();
+    }
+
+    function handleDragOver(e) {
+      e.preventDefault();
+      document.getElementById('pdf-dropzone').classList.add('border-brand-500', 'bg-brand-50/50');
+    }
+    function handleDragLeave(e) {
+      e.preventDefault();
+      document.getElementById('pdf-dropzone').classList.remove('border-brand-500', 'bg-brand-50/50');
+    }
+    function handleDrop(e) {
+      e.preventDefault();
+      document.getElementById('pdf-dropzone').classList.remove('border-brand-500', 'bg-brand-50/50');
+      if (e.dataTransfer.files.length > 0) {
+        processUploadedFile(e.dataTransfer.files[0]);
+      }
+    }
+    function handleFileSelected(input) {
+      if (input.files.length > 0) {
+        processUploadedFile(input.files[0]);
+      }
+    }
+    function processUploadedFile(file) {
+      if (!file.name.endsWith('.pdf')) {
+        showToast('PDF 파일만 업로드할 수 있습니다.', 'danger');
+        return;
+      }
+      document.getElementById('pdf-selected-name').innerText = file.name;
+      document.getElementById('pdf-selected-size').innerText = `${(file.size / (1024 * 1024)).toFixed(1)} MB · 텍스트 추출 완료 준비`;
+      document.getElementById('pdf-selected-info').classList.remove('hidden');
+
+      const nameWithoutExt = file.name.replace(/\.[^/.]+$/, "");
+      const unitInput = document.getElementById('pdf-input-unit');
+      if (unitInput && !unitInput.value) {
+        unitInput.value = nameWithoutExt;
+      }
+      showToast(`'${file.name}' 파일이 등록되었습니다.`, 'success');
+    }
+    function clearSelectedFile() {
+      document.getElementById('pdf-selected-info').classList.add('hidden');
+      document.getElementById('pdf-file-input').value = '';
+    }
+
+    function startAiExtraction() {
+      let subject = '';
+      let topic = '';
+
+      if (APP_STATE.inputMode === 'topic') {
+        subject = document.getElementById('input-subject-name').value.trim();
+        topic = document.getElementById('input-topic-text').value.trim();
+        if (!topic) {
+          showToast('공부할 단원 및 세부 이론 주제명을 입력해주세요.', 'warning');
+          document.getElementById('input-topic-text').focus();
+          return;
+        }
+      } else {
+        subject = document.getElementById('pdf-input-subject').value.trim();
+        topic = document.getElementById('pdf-input-unit').value.trim();
+        if (!topic) {
+          showToast('PDF 단원명 또는 주제명을 입력해주세요.', 'warning');
+          return;
+        }
+      }
+
+      APP_STATE.currentSubject = subject || '자율 전공 과목';
+      APP_STATE.currentTopic = topic;
+
+      // Add to available subjects list if new
+      if (!APP_STATE.availableSubjects.includes(APP_STATE.currentSubject)) {
+        APP_STATE.availableSubjects.push(APP_STATE.currentSubject);
+      }
+
+      const overlay = document.getElementById('ai-loading-overlay');
+      const bar = document.getElementById('loading-bar-inner');
+      const subText = document.getElementById('loading-sub-text');
+
+      overlay.classList.remove('hidden');
+      bar.style.width = '20%';
+      subText.innerText = `'${APP_STATE.currentSubject} > ${APP_STATE.currentTopic}' 핵심 개념 트리를 분석 중입니다...`;
+
+      setTimeout(() => {
+        bar.style.width = '60%';
+        subText.innerText = '이론을 실생활 및 실무 시스템 장애 시나리오로 변환하고 있습니다...';
+      }, 700);
+
+      setTimeout(() => {
+        bar.style.width = '95%';
+        subText.innerText = '과목별 3단계 적응형 문항 체계 생성 완료!';
+      }, 1400);
+
+      setTimeout(() => {
+        overlay.classList.add('hidden');
+        bar.style.width = '0%';
+        renderModeSelectView();
+        navigateTo('view-mode-select');
+      }, 1800);
+    }
+
+    function quickStartTopic(subject, topic, domain) {
+      setSubjectAndTopic(subject, topic, domain || 'IT_DEV');
+      startAiExtraction();
+    }
+
+    function renderModeSelectView() {
+      document.getElementById('mode-select-subject-badge').innerText = APP_STATE.currentSubject;
+      document.getElementById('mode-select-topic-badge').innerText = APP_STATE.currentTopic;
+      setFixedLevelChoice(APP_STATE.fixedLevelTarget || 2);
+      updateQuestionCountUI();
+    }
+
+    function setQuestionCount(count) {
+      const parsed = Math.max(5, Math.min(25, parseInt(count, 10) || 10));
+      APP_STATE.questionCount = parsed;
+      updateQuestionCountUI();
+    }
+
+    function updateQuestionCountUI() {
+      const count = APP_STATE.questionCount;
+      const adaptiveBtnText = document.getElementById('btn-adaptive-mode-text');
+      const fixedBtnText = document.getElementById('btn-fixed-level-text');
+
+      if (adaptiveBtnText) {
+        adaptiveBtnText.innerText = `총 ${count}문제 적응형 셔플 모드로 시작하기`;
+      }
+
+      const levelNames = { 1: '1단계(기초 개념)', 2: '2단계(실전 적용)', 3: '3단계(심화 트러블슈팅)' };
+      if (fixedBtnText) {
+        fixedBtnText.innerText = `선택한 ${levelNames[APP_STATE.fixedLevelTarget]} ${count}문제만 풀기`;
+      }
+
+      document.querySelectorAll('.q-count-btn').forEach(btn => {
+        const btnCount = parseInt(btn.getAttribute('data-qcount'), 10);
+        if (btnCount === count) {
+          btn.className = "q-count-btn py-2 px-1 rounded-xl border-2 border-brand-500 bg-brand-50/80 text-xs font-bold text-brand-600 shadow-xs ring-2 ring-brand-100 transition text-center";
+        } else {
+          btn.className = "q-count-btn py-2 px-1 rounded-xl border border-slate-200 bg-white text-xs font-semibold text-slate-600 hover:bg-slate-50 transition text-center";
+        }
+      });
+    }
+
+    function setFixedLevelChoice(level) {
+      APP_STATE.fixedLevelTarget = level;
+      const levelNames = { 1: '1단계(기초 개념)', 2: '2단계(실전 적용)', 3: '3단계(심화 트러블슈팅)' };
+      
+      [1, 2, 3].forEach(lvl => {
+        const btn = document.getElementById(`choice-level-${lvl}`);
+        if (!btn) return;
+        if (lvl === level) {
+          btn.className = "fixed-lvl-btn p-2.5 rounded-xl border-2 border-brand-500 bg-brand-50/50 text-left transition ring-2 ring-brand-200";
+        } else {
+          btn.className = "fixed-lvl-btn p-2.5 rounded-xl border-2 border-slate-200 text-left hover:border-slate-400 transition bg-white";
+        }
+      });
+
+      const actionBtnText = document.getElementById('btn-fixed-level-text');
+      if (actionBtnText) {
+        actionBtnText.innerText = `선택한 ${levelNames[level]} ${APP_STATE.questionCount}문제만 풀기`;
+      }
+    }
+
+    function selectStudyMode(mode) {
+      APP_STATE.studyMode = mode;
+      if (mode === 'ADAPTIVE_SHUFFLE') {
+        APP_STATE.currentQuizLevel = 2;
+        showToast(`추천 모드: [총 ${APP_STATE.questionCount}문제 적응형 셔플 모드]가 선택되었습니다. 👑`, 'success');
+      } else {
+        APP_STATE.currentQuizLevel = APP_STATE.fixedLevelTarget;
+        showToast(`맞춤 모드: [${APP_STATE.fixedLevelTarget}단계 단독 ${APP_STATE.questionCount}문제 풀이]가 선택되었습니다.`, 'info');
+      }
+
+      renderKnowledgeIntro();
+      navigateTo('view-intro');
+    }
+
+    function renderKnowledgeIntro() {
+      document.getElementById('intro-subject-badge').innerText = APP_STATE.currentSubject;
+      document.getElementById('intro-topic-title').innerText = `${APP_STATE.currentSubject} - ${APP_STATE.currentTopic}`;
+      const domainMap = { 'IT_DEV': 'IT / 컴공 전공', 'BUSINESS_ECONOMY': '경영 / 경제 전공', 'PSYCHOLOGY': '심리학 전공' };
+      document.getElementById('intro-domain-badge').innerText = domainMap[APP_STATE.currentDomain] || '전공 이론';
+
+      const count = APP_STATE.questionCount || 10;
+      const levelNames = { 1: '1단계(기초 정의)', 2: '2단계(실전 적용)', 3: '3단계(심화 트러블슈팅)' };
+      const levelShortNames = { 1: '1단계(기초 개념)', 2: '2단계(실전 적용)', 3: '3단계(심화 엣지)' };
+
+      const summaryText = document.getElementById('intro-summary-text');
+      const ruleModeLabel = document.getElementById('intro-rule-mode-label');
+      const ruleDesc1 = document.getElementById('rule-desc-1');
+      const ruleDesc2 = document.getElementById('rule-desc-2');
+      const btnStartText = document.getElementById('btn-start-intro-text');
+
+      if (APP_STATE.studyMode === 'ADAPTIVE_SHUFFLE') {
+        summaryText.innerHTML = `선택 모드: <strong class="text-amber-950">적응형 셔플 (CAT)</strong> | 총 <strong class="text-brand-700">${count}문항</strong>`;
+        ruleModeLabel.innerText = '적응형 셔플 모드 적용 중 (CAT)';
+        ruleDesc1.innerHTML = '<strong>실생활 적용(2단계)부터 출제:</strong> 단순 정의 암기가 아닌 실생활 시나리오에 응용 가능한지 먼저 테스트합니다.';
+        ruleDesc2.innerHTML = '<strong>난이도 동적 분기:</strong> 정답 시 3단계(심화)로 승격, 오답 시 1단계(개념 정의)로 강등 출제됩니다.';
+        btnStartText.innerText = `총 ${count}문항 2단계(실전 적용)부터 검증 시작하기`;
+      } else {
+        const targetLvl = APP_STATE.fixedLevelTarget || 2;
+        summaryText.innerHTML = `선택 모드: <strong class="text-slate-900">${levelShortNames[targetLvl]} 단독</strong> | 총 <strong class="text-brand-700">${count}문항</strong>`;
+        ruleModeLabel.innerText = `${levelShortNames[targetLvl]} 단독 풀이 모드`;
+        ruleDesc1.innerHTML = `<strong>지정된 ${levelNames[targetLvl]} 집중 출제:</strong> 난이도 자동 승강등 없이 선택한 레벨만 균일하게 집중 학습합니다.`;
+        ruleDesc2.innerHTML = '<strong>체화도 균일 검증:</strong> 모든 핵심 콘텐츠에 대해 동일 레벨 문항을 풀이하여 특정 난이도 취약점을 판정합니다.';
+        btnStartText.innerText = `총 ${count}문항 ${levelNames[targetLvl]} 풀이 시작하기`;
+      }
+
+      const data = TOPIC_DATABASE['IT_DEV'];
+      const container = document.getElementById('knowledge-tree-nodes');
+      container.innerHTML = '';
+
+      data.concepts.forEach((concept, idx) => {
+        const card = document.createElement('div');
+        card.className = "p-5 rounded-2xl border border-slate-200 bg-slate-50/70 hover:bg-white hover:border-brand-300 hover:shadow-sm transition space-y-3";
+        
+        let modeLabel = '';
+        if (APP_STATE.studyMode === 'ADAPTIVE_SHUFFLE') {
+          modeLabel = '<span class="text-amber-700 font-bold">시작: 2단계 실생활 적용 (CAT 셔플)</span>';
+        } else {
+          const targetLvl = APP_STATE.fixedLevelTarget || 2;
+          modeLabel = `<span class="text-brand-700 font-bold">선택 단계: Level ${targetLvl} (${targetLvl === 1 ? '개념' : (targetLvl === 2 ? '실전' : '심화')}) 단독</span>`;
+        }
+
+        card.innerHTML = `
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-black px-2.5 py-0.5 rounded-md bg-brand-50 text-brand-700 border border-brand-200">
+              Content 0${idx + 1}
+            </span>
+            <span class="text-[11px] text-slate-400 font-medium">3단계 시나리오 장착</span>
+          </div>
+          <div>
+            <h4 class="text-sm font-bold text-slate-900">${concept.name}</h4>
+            <p class="text-xs text-slate-500 mt-1 leading-relaxed">${concept.desc}</p>
+          </div>
+          <div class="pt-2.5 border-t border-slate-200/60 flex items-center justify-between text-[11px]">
+            ${modeLabel}
+            <i class="fa-solid fa-arrow-right text-slate-300"></i>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function startQuizSession() {
+      APP_STATE.currentConceptIndex = 0;
+      APP_STATE.isSpeedDefenseTriggered = false;
+      APP_STATE.pendingSpeedVerificationQuiz = null;
+
+      if (APP_STATE.studyMode === 'ADAPTIVE_SHUFFLE') {
+        APP_STATE.currentQuizLevel = 2;
+      } else {
+        APP_STATE.currentQuizLevel = APP_STATE.fixedLevelTarget;
+      }
+      APP_STATE.sessionResults = [];
+      navigateTo('view-quiz');
+      loadConceptQuiz();
+    }
+
+    function calculateStandardTime(charCount, level) {
+      const baseSec = (typeof level === 'number' && level === 1) ? 5 : ((typeof level === 'number' && level === 2) ? 12 : 20);
+      return Math.round((charCount / 10) + baseSec);
+    }
+
+    function loadConceptQuiz() {
+      const conceptData = TOPIC_DATABASE['IT_DEV'].concepts[APP_STATE.currentConceptIndex];
+      const quiz = conceptData.quizzes[APP_STATE.currentQuizLevel];
+
+      APP_STATE.selectedOption = null;
+      APP_STATE.hesitationCount = 0;
+      APP_STATE.firstClickTime = null;
+      APP_STATE.startTime = Date.now();
+      APP_STATE.tabOutOccurred = false;
+      APP_STATE.tabOutTotalDuration = 0;
+      document.getElementById('tab-out-alert').classList.add('hidden');
+      document.getElementById('quiz-hesitation-count').innerText = '0';
+
+      document.getElementById('quiz-feedback-panel').classList.add('hidden');
+      document.getElementById('btn-next-question').classList.add('hidden');
+      const submitBtn = document.getElementById('btn-submit-answer');
+      submitBtn.classList.remove('hidden');
+      submitBtn.disabled = true;
+      submitBtn.className = "w-full sm:w-auto px-8 py-3 rounded-xl bg-slate-200 text-slate-400 font-bold text-sm cursor-not-allowed transition flex items-center justify-center gap-2";
+
+      const speedBadge = document.getElementById('badge-speed-defense');
+      const verifySubbadge = document.getElementById('quiz-verify-subbadge');
+      if (APP_STATE.isSpeedDefenseTriggered) {
+        speedBadge.classList.remove('hidden');
+        verifySubbadge.classList.remove('hidden');
+      } else {
+        speedBadge.classList.add('hidden');
+        verifySubbadge.classList.add('hidden');
+      }
+
+      document.getElementById('quiz-subject-indicator').innerText = APP_STATE.currentSubject;
+      document.getElementById('quiz-concept-indicator').innerText = `세부 개념 ${APP_STATE.currentConceptIndex + 1}/3 : ${conceptData.name}`;
+      document.getElementById('quiz-scenario-badge').innerText = quiz.title;
+      document.getElementById('quiz-level-tag').innerText = `${quiz.tag} (Level ${quiz.level})`;
+      document.getElementById('quiz-question-text').innerText = quiz.text;
+
+      const standardTimeSec = calculateStandardTime(quiz.charLength, quiz.level);
+      const speedLimitThresholdSec = (standardTimeSec * 0.2).toFixed(1);
+
+      document.getElementById('quiz-standard-time').innerText = `${standardTimeSec}초`;
+      document.getElementById('quiz-speed-limit-label').innerText = `${speedLimitThresholdSec}초`;
+
+      const optionsContainer = document.getElementById('quiz-options-container');
+      optionsContainer.innerHTML = '';
+
+      quiz.options.forEach((optText, optIdx) => {
+        const optionBtn = document.createElement('div');
+        optionBtn.className = `option-item p-4 rounded-xl border border-slate-200 hover:border-brand-400 hover:bg-brand-50/30 cursor-pointer transition flex items-start gap-3`;
+        optionBtn.onclick = () => selectQuizOption(optIdx);
+        optionBtn.innerHTML = `
+          <div class="opt-radio mt-0.5 w-5 h-5 rounded-full border border-slate-300 flex items-center justify-center shrink-0">
+            <div class="opt-radio-dot w-2.5 h-2.5 rounded-full bg-transparent"></div>
+          </div>
+          <span class="text-sm font-medium text-slate-800 leading-snug">${optText}</span>
+        `;
+        optionsContainer.appendChild(optionBtn);
+      });
+
+      startTimerEngine(standardTimeSec);
+    }
+
+    function startTimerEngine(standardTimeSec) {
+      if (APP_STATE.timerInterval) clearInterval(APP_STATE.timerInterval);
+      const timerBar = document.getElementById('quiz-timer-bar');
+      const timerDisplay = document.getElementById('quiz-live-timer');
+      const timeStatus = document.getElementById('quiz-time-status');
+
+      APP_STATE.timerInterval = setInterval(() => {
+        const elapsedSec = (Date.now() - APP_STATE.startTime) / 1000;
+        APP_STATE.currentQuizDurationMs = Math.round(elapsedSec * 1000);
+        timerDisplay.innerText = `${elapsedSec.toFixed(1)}s`;
+
+        const maxThreshold = standardTimeSec * 1.5;
+        const progressPercent = Math.max(0, 100 - (elapsedSec / maxThreshold) * 100);
+        timerBar.style.width = `${progressPercent}%`;
+
+        const ratio = elapsedSec / standardTimeSec;
+        if (ratio < 0.2) {
+          timeStatus.innerHTML = `<span class="text-amber-500 font-black">⚡ 최소 읽기 시간 미달 (Speed Limit 미달)</span>`;
+          timerBar.className = "h-full bg-amber-400 transition-all duration-100 rounded-full";
+        } else if (ratio < 0.4) {
+          timeStatus.innerHTML = `<span class="text-amber-500 font-semibold">성급한 풀이 주의 ⚡</span>`;
+          timerBar.className = "h-full bg-amber-400 transition-all duration-100 rounded-full";
+        } else if (ratio <= 1.2) {
+          timeStatus.innerHTML = `<span class="text-emerald-600 font-semibold">정상 숙달 페이스 🟢</span>`;
+          timerBar.className = "h-full bg-brand-500 transition-all duration-100 rounded-full";
+        } else {
+          timeStatus.innerHTML = `<span class="text-danger-600 font-semibold">인지 부하/지연 발생 ⚠️</span>`;
+          timerBar.className = "h-full bg-danger-500 transition-all duration-100 rounded-full";
+        }
+      }, 100);
+    }
+
+    function selectQuizOption(index) {
+      if (!document.getElementById('quiz-feedback-panel').classList.contains('hidden')) return;
+
+      const now = Date.now();
+      if (APP_STATE.firstClickTime === null) {
+        APP_STATE.firstClickTime = now - APP_STATE.startTime;
+      }
+
+      if (APP_STATE.selectedOption !== null && APP_STATE.selectedOption !== index) {
+        APP_STATE.hesitationCount++;
+        document.getElementById('quiz-hesitation-count').innerText = APP_STATE.hesitationCount;
+        showToast('선택지 번복이 기록되었습니다.', 'info');
+      }
+
+      APP_STATE.selectedOption = index;
+
+      const items = document.querySelectorAll('.option-item');
+      items.forEach((el, idx) => {
+        const dot = el.querySelector('.opt-radio-dot');
+        const radio = el.querySelector('.opt-radio');
+        if (idx === index) {
+          el.classList.add('border-brand-500', 'bg-brand-50/60', 'ring-2', 'ring-brand-200');
+          radio.classList.add('border-brand-600');
+          dot.classList.remove('bg-transparent');
+          dot.classList.add('bg-brand-600');
+        } else {
+          el.classList.remove('border-brand-500', 'bg-brand-50/60', 'ring-2', 'ring-brand-200');
+          radio.classList.remove('border-brand-600');
+          dot.classList.remove('bg-brand-600');
+          dot.classList.add('bg-transparent');
+        }
+      });
+
+      const submitBtn = document.getElementById('btn-submit-answer');
+      submitBtn.disabled = false;
+      submitBtn.className = "w-full sm:w-auto px-8 py-3 rounded-xl bg-brand-600 hover:bg-brand-700 active:scale-95 text-white font-bold text-sm shadow-md transition flex items-center justify-center gap-2 cursor-pointer";
+    }
+
+    document.addEventListener("visibilitychange", () => {
+      if (APP_STATE.currentView === 'view-quiz') {
+        if (document.hidden) {
+          APP_STATE.tabOutStart = Date.now();
+          APP_STATE.tabOutOccurred = true;
+        } else {
+          if (APP_STATE.tabOutStart) {
+            const outDuration = Date.now() - APP_STATE.tabOutStart;
+            APP_STATE.tabOutTotalDuration += outDuration;
+            document.getElementById('tab-out-alert').classList.remove('hidden');
+            showToast('화면 이탈이 감지되어 풀이 시간에 보정 반영됩니다.', 'warning');
+          }
+        }
+      }
+    });
+
+    let pendingNextAction = null;
+
+    function submitCurrentAnswer() {
+      clearInterval(APP_STATE.timerInterval);
+      const conceptData = TOPIC_DATABASE['IT_DEV'].concepts[APP_STATE.currentConceptIndex];
+      const quiz = conceptData.quizzes[APP_STATE.currentQuizLevel];
+      const isCorrect = (APP_STATE.selectedOption === quiz.correctIndex);
+      const standardTimeSec = calculateStandardTime(quiz.charLength, quiz.level);
+      const elapsedSec = (APP_STATE.currentQuizDurationMs / 1000);
+      const speedLimitThresholdSec = standardTimeSec * 0.2;
+
+      const isSpeedLimitViolated = (elapsedSec < speedLimitThresholdSec);
+
+      if (isSpeedLimitViolated && isCorrect && !APP_STATE.isSpeedDefenseTriggered && conceptData.quizzes['2_verify']) {
+        triggerSpeedLimitDefense(standardTimeSec, speedLimitThresholdSec, elapsedSec);
+        return;
+      }
+
+      const log = {
+        conceptId: conceptData.id,
+        conceptName: conceptData.name,
+        level: quiz.level,
+        selectedOption: APP_STATE.selectedOption,
+        correctIndex: quiz.correctIndex,
+        isCorrect: isCorrect,
+        actualTimeMs: APP_STATE.currentQuizDurationMs,
+        standardTimeSec: standardTimeSec,
+        firstClickMs: APP_STATE.firstClickTime || APP_STATE.currentQuizDurationMs,
+        hesitationCount: APP_STATE.hesitationCount,
+        tabOutOccurred: APP_STATE.tabOutOccurred,
+        isSpeedDefenseTriggered: APP_STATE.isSpeedDefenseTriggered,
+        explanation: quiz.explanation,
+        questionText: quiz.text,
+        userOptionText: quiz.options[APP_STATE.selectedOption]
+      };
+
+      if (!APP_STATE.sessionResults[APP_STATE.currentConceptIndex]) {
+        APP_STATE.sessionResults[APP_STATE.currentConceptIndex] = {
+          conceptId: conceptData.id,
+          conceptName: conceptData.name,
+          logs: []
+        };
+      }
+      APP_STATE.sessionResults[APP_STATE.currentConceptIndex].logs.push(log);
+
+      APP_STATE.isSpeedDefenseTriggered = false;
+
+      const optionElements = document.querySelectorAll('.option-item');
+      optionElements.forEach((el, idx) => {
+        el.classList.remove('hover:border-brand-400', 'hover:bg-brand-50/30', 'cursor-pointer');
+        el.onclick = null;
+        if (idx === quiz.correctIndex) {
+          el.className = "option-item p-4 rounded-xl border-2 border-emerald-500 bg-emerald-50/70 flex items-start gap-3 transition";
+        } else if (idx === APP_STATE.selectedOption && !isCorrect) {
+          el.className = "option-item p-4 rounded-xl border-2 border-danger-400 bg-danger-50/70 flex items-start gap-3 transition";
+        } else {
+          el.className = "option-item p-4 rounded-xl border border-slate-200 bg-slate-50/50 opacity-60 flex items-start gap-3 transition";
+        }
+      });
+
+      const feedbackPanel = document.getElementById('quiz-feedback-panel');
+      const feedbackBadge = document.getElementById('quiz-feedback-badge');
+      const branchHint = document.getElementById('quiz-feedback-branch-hint');
+      const expText = document.getElementById('quiz-feedback-explanation');
+      const nextBtn = document.getElementById('btn-next-question');
+      const nextBtnText = document.getElementById('btn-next-question-text');
+      const submitBtn = document.getElementById('btn-submit-answer');
+
+      feedbackPanel.classList.remove('hidden');
+      submitBtn.classList.add('hidden');
+      nextBtn.classList.remove('hidden');
+      expText.innerText = quiz.explanation;
+
+      if (isCorrect) {
+        feedbackPanel.className = "rounded-2xl p-5 border border-emerald-300 bg-emerald-50/60 transition-all animate-fadeIn space-y-3";
+        feedbackBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-emerald-600 text-white shadow-xs";
+        feedbackBadge.innerHTML = `<i class="fa-solid fa-circle-check"></i><span>정답입니다!</span>`;
+      } else {
+        feedbackPanel.className = "rounded-2xl p-5 border border-danger-300 bg-danger-50/60 transition-all animate-fadeIn space-y-3";
+        feedbackBadge.className = "inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-black bg-danger-600 text-white shadow-xs";
+        feedbackBadge.innerHTML = `<i class="fa-solid fa-circle-xmark"></i><span>오답입니다</span>`;
+      }
+
+      if (APP_STATE.isCustomPractice) {
+        branchHint.innerText = '단독 집중 학습 문항 풀이 완료';
+        branchHint.className = 'text-xs font-bold text-slate-700';
+        nextBtnText.innerText = '결과 리포트로 돌아가기';
+        pendingNextAction = () => {
+          APP_STATE.isCustomPractice = false;
+          navigateTo('view-result');
+        };
+        return;
+      }
+
+      if (APP_STATE.studyMode === 'FIXED_LEVEL') {
+        const isLastConcept = (APP_STATE.currentConceptIndex >= TOPIC_DATABASE['IT_DEV'].concepts.length - 1);
+        if (!isLastConcept) {
+          branchHint.innerText = `다음 세부 개념(0${APP_STATE.currentConceptIndex + 2})으로 이동`;
+          branchHint.className = 'text-xs font-bold text-brand-700';
+          nextBtnText.innerText = '다음 세부 개념 풀기';
+          pendingNextAction = () => {
+            APP_STATE.currentConceptIndex++;
+            APP_STATE.currentQuizLevel = APP_STATE.fixedLevelTarget;
+            loadConceptQuiz();
+          };
+        } else {
+          branchHint.innerText = '모든 세부 개념 풀이 완료';
+          branchHint.className = 'text-xs font-bold text-emerald-700';
+          nextBtnText.innerText = '종합 진단 리포트 확인하기';
+          pendingNextAction = () => {
+            evaluateAndShowResults();
+          };
+        }
+        return;
+      }
+
+      // Mode 1: ADAPTIVE_SHUFFLE (CAT)
+      if (APP_STATE.currentQuizLevel === 2 || APP_STATE.currentQuizLevel === '2_verify') {
+        if (isCorrect) {
+          branchHint.innerText = '정답 ➔ 심화 엣지 트러블슈팅(Level 3)으로 승격 출제';
+          branchHint.className = 'text-xs font-bold text-purple-700';
+          nextBtnText.innerText = 'Level 3 심화 문제 풀기';
+          pendingNextAction = () => {
+            APP_STATE.currentQuizLevel = 3;
+            loadConceptQuiz();
+          };
+        } else {
+          branchHint.innerText = '오답 ➔ 기초 개념 정의(Level 1)로 강등 출제';
+          branchHint.className = 'text-xs font-bold text-amber-700';
+          nextBtnText.innerText = 'Level 1 기초 개념 확인하기';
+          pendingNextAction = () => {
+            APP_STATE.currentQuizLevel = 1;
+            loadConceptQuiz();
+          };
+        }
+      } else {
+        const isLastConcept = (APP_STATE.currentConceptIndex >= TOPIC_DATABASE['IT_DEV'].concepts.length - 1);
+        if (!isLastConcept) {
+          branchHint.innerText = `개념 [${conceptData.name}] 검증 완료 ➔ 다음 개념으로 이동`;
+          branchHint.className = 'text-xs font-bold text-brand-700';
+          nextBtnText.innerText = '다음 세부 개념 풀기';
+          pendingNextAction = () => {
+            APP_STATE.currentConceptIndex++;
+            APP_STATE.currentQuizLevel = 2;
+            loadConceptQuiz();
+          };
+        } else {
+          branchHint.innerText = '모든 세부 개념 진단 완료';
+          branchHint.className = 'text-xs font-bold text-emerald-700';
+          nextBtnText.innerText = '종합 진단 리포트 확인하기';
+          pendingNextAction = () => {
+            evaluateAndShowResults();
+          };
+        }
+      }
+    }
+
+    function proceedToNextBranch() {
+      if (typeof pendingNextAction === 'function') {
+        pendingNextAction();
+        pendingNextAction = null;
+      }
+    }
+
+    function openExitModal() {
+      if (APP_STATE.timerInterval) clearInterval(APP_STATE.timerInterval);
+      const exitModal = document.getElementById('quiz-exit-modal');
+      const saveBtn = document.getElementById('btn-exit-save');
+
+      const hasLogs = APP_STATE.sessionResults.some(r => r && r.logs && r.logs.length > 0);
+      if (!hasLogs) {
+        saveBtn.classList.add('hidden');
+      } else {
+        saveBtn.classList.remove('hidden');
+      }
+
+      exitModal.classList.remove('hidden');
+    }
+
+    function closeExitModal() {
+      document.getElementById('quiz-exit-modal').classList.add('hidden');
+      const feedbackHidden = document.getElementById('quiz-feedback-panel').classList.contains('hidden');
+      if (feedbackHidden && APP_STATE.startTime) {
+        const conceptData = TOPIC_DATABASE['IT_DEV'].concepts[APP_STATE.currentConceptIndex];
+        const quiz = conceptData.quizzes[APP_STATE.currentQuizLevel];
+        const standardTimeSec = calculateStandardTime(quiz.charLength, quiz.level);
+        startTimerEngine(standardTimeSec);
+      }
+    }
+
+    function confirmExitWithSave() {
+      document.getElementById('quiz-exit-modal').classList.add('hidden');
+      showToast('지금까지 푼 문항으로 중간 진단 결과를 분석합니다.', 'info');
+      evaluateAndShowResults();
+    }
+
+    function confirmExitDiscard() {
+      document.getElementById('quiz-exit-modal').classList.add('hidden');
+      if (APP_STATE.timerInterval) clearInterval(APP_STATE.timerInterval);
+      APP_STATE.sessionResults = [];
+      showToast('학습 세션이 저장되지 않고 취소되었습니다.', 'warning');
+      navigateTo('view-home');
+    }
+
+    function triggerSpeedLimitDefense(standardSec, thresholdSec, actualSec) {
+      document.getElementById('modal-speed-standard').innerText = `${standardSec}초`;
+      document.getElementById('modal-speed-threshold').innerText = `${thresholdSec.toFixed(1)}초`;
+      document.getElementById('modal-speed-actual').innerText = `${actualSec.toFixed(1)}초 (성급함)`;
+
+      APP_STATE.isSpeedDefenseTriggered = true;
+      APP_STATE.currentQuizLevel = '2_verify';
+
+      document.getElementById('speed-limit-modal').classList.remove('hidden');
+    }
+
+    function closeSpeedLimitModalAndContinue() {
+      document.getElementById('speed-limit-modal').classList.add('hidden');
+      showToast('⚡ Speed Limit 방어: 검증용 유사 변형 시나리오가 출제되었습니다.', 'warning');
+      loadConceptQuiz();
+    }
+
+    function evaluateAndShowResults() {
+      const evaluations = APP_STATE.sessionResults.map(item => {
+        const logL2 = item.logs.find(l => l.level === 2);
+        const logL1 = item.logs.find(l => l.level === 1);
+        const logL3 = item.logs.find(l => l.level === 3);
+        const hadSpeedDefense = item.logs.some(l => l.isSpeedDefenseTriggered);
+
+        const l2Correct = logL2 ? logL2.isCorrect : false;
+        const l1Correct = logL1 ? logL1.isCorrect : false;
+        const l3Correct = logL3 ? logL3.isCorrect : false;
+
+        const totalActualSec = item.logs.reduce((acc, curr) => acc + (curr.actualTimeMs / 1000), 0);
+        const totalStandardSec = item.logs.reduce((acc, curr) => acc + curr.standardTimeSec, 0);
+        const totalHesitation = item.logs.reduce((acc, curr) => acc + curr.hesitationCount, 0);
+        const avgRatio = totalActualSec / totalStandardSec;
+
+        let status = 'INSTABILITY';
+        let statusTitle = '🟡 아리송한 망설임';
+        let priority = 2;
+
+        if (logL1 && l1Correct && !l2Correct) {
+          status = 'ILLUSION';
+          statusTitle = '🚨 안다고 착각한 맹점';
+          priority = 1;
+        } else if (logL1 && !l1Correct && !l2Correct) {
+          status = 'DEFICIT';
+          statusTitle = '🔴 아직 낯선 개념';
+          priority = 3;
+        } else if (l2Correct && l3Correct && avgRatio <= 1.25 && totalHesitation <= 1 && !hadSpeedDefense) {
+          status = 'MASTERY';
+          statusTitle = '🟢 완벽한 체득';
+          priority = 4;
+        } else {
+          status = 'INSTABILITY';
+          statusTitle = '🟡 아리송한 망설임';
+          priority = 2;
+        }
+
+        return {
+          conceptId: item.conceptId,
+          conceptName: item.conceptName,
+          status,
+          statusTitle,
+          priority,
+          totalActualSec: totalActualSec.toFixed(1),
+          totalStandardSec,
+          avgRatio: avgRatio.toFixed(2),
+          totalHesitation,
+          hadSpeedDefense,
+          failedLog: item.logs.find(l => !l.isCorrect) || item.logs[0]
+        };
+      });
+
+      const now = new Date();
+      const counts = { illusion: 0, instability: 0, mastery: 0, deficit: 0 };
+      evaluations.forEach(e => {
+        if (e.status === 'ILLUSION') counts.illusion++;
+        else if (e.status === 'INSTABILITY') counts.instability++;
+        else if (e.status === 'MASTERY') counts.mastery++;
+        else counts.deficit++;
+      });
+
+      const illusionItem = evaluations.find(e => e.status === 'ILLUSION');
+
+      const newHistoryEntry = {
+        id: 'hist-' + Date.now(),
+        date: `${now.getFullYear()}. ${String(now.getMonth()+1).padStart(2, '0')}. ${String(now.getDate()).padStart(2, '0')}`,
+        daysAgo: 0,
+        subject: APP_STATE.currentSubject,
+        topic: APP_STATE.currentTopic,
+        domain: APP_STATE.currentDomain,
+        domainLabel: APP_STATE.currentDomain === 'IT_DEV' ? 'IT / 컴공' : (APP_STATE.currentDomain === 'BUSINESS_ECONOMY' ? '경영 / 경제' : '심리학'),
+        mode: APP_STATE.studyMode,
+        modeLabel: APP_STATE.studyMode === 'ADAPTIVE_SHUFFLE' ? '적응형 셔플 (CAT)' : `Level ${APP_STATE.fixedLevelTarget} 단독`,
+        counts,
+        avgSpeed: (evaluations.reduce((acc, curr) => acc + parseFloat(curr.totalActualSec), 0) / evaluations.length).toFixed(1) + '초',
+        hesitationTotal: evaluations.reduce((acc, curr) => acc + curr.totalHesitation, 0),
+        hasUnresolvedIllusion: counts.illusion > 0,
+        keyIllusionConcept: illusionItem ? illusionItem.conceptName : null
+      };
+
+      APP_STATE.studyHistory.unshift(newHistoryEntry);
+      renderSubjectFilterChips();
+      renderHistorySessions();
+
+      renderDiagnosisView(evaluations);
+      renderCustomPracticeCards(evaluations);
+      renderReviewDeck(evaluations);
+      navigateTo('view-result');
+    }
+
+    function renderDiagnosisView(evaluations) {
+      document.getElementById('result-subject-badge').innerText = APP_STATE.currentSubject;
+      document.getElementById('result-topic-header').innerText = `${APP_STATE.currentSubject} - ${APP_STATE.currentTopic} 종합 진단 리포트`;
+
+      const counts = { ILLUSION: 0, INSTABILITY: 0, MASTERY: 0, DEFICIT: 0 };
+      evaluations.forEach(e => counts[e.status]++);
+
+      document.getElementById('stat-count-illusion').innerText = `${counts.ILLUSION}개`;
+      document.getElementById('stat-count-instability').innerText = `${counts.INSTABILITY}개`;
+      document.getElementById('stat-count-mastery').innerText = `${counts.MASTERY}개`;
+      document.getElementById('stat-count-deficit').innerText = `${counts.DEFICIT}개`;
+
+      const qIllusion = document.getElementById('quadrant-illusion-items');
+      const qInstability = document.getElementById('quadrant-instability-items');
+      const qMastery = document.getElementById('quadrant-mastery-items');
+      const qDeficit = document.getElementById('quadrant-deficit-items');
+      qIllusion.innerHTML = '';
+      qInstability.innerHTML = '';
+      qMastery.innerHTML = '';
+      qDeficit.innerHTML = '';
+
+      evaluations.forEach(e => {
+        const chip = document.createElement('div');
+        chip.className = "text-xs px-2.5 py-1 rounded-lg font-bold truncate ";
+        if (e.status === 'ILLUSION') {
+          chip.className += "bg-danger-100 text-danger-800 border border-danger-300";
+          chip.innerHTML = `<i class="fa-solid fa-triangle-exclamation mr-1"></i> ${e.conceptName}`;
+          qIllusion.appendChild(chip);
+        } else if (e.status === 'MASTERY') {
+          chip.className += "bg-emerald-100 text-emerald-800 border border-emerald-300";
+          chip.innerHTML = `<i class="fa-solid fa-check mr-1"></i> ${e.conceptName}`;
+          qMastery.appendChild(chip);
+        } else if (e.status === 'INSTABILITY') {
+          chip.className += "bg-amber-100 text-amber-800 border border-amber-300";
+          chip.innerHTML = `<i class="fa-solid fa-clock-rotate-left mr-1"></i> ${e.conceptName}${e.hadSpeedDefense ? ' ⚡' : ''}`;
+          qInstability.appendChild(chip);
+        } else {
+          chip.className += "bg-slate-200 text-slate-800 border border-slate-300";
+          chip.innerHTML = `<i class="fa-solid fa-xmark mr-1"></i> ${e.conceptName}`;
+          qDeficit.appendChild(chip);
+        }
+      });
+
+      const tableBody = document.getElementById('result-behavior-table-body');
+      tableBody.innerHTML = '';
+      evaluations.forEach(e => {
+        const tr = document.createElement('tr');
+        const badgeColors = {
+          'ILLUSION': 'bg-danger-50 text-danger-700 border-danger-200',
+          'MASTERY': 'bg-emerald-50 text-emerald-700 border-emerald-200',
+          'INSTABILITY': 'bg-amber-50 text-amber-700 border-amber-200',
+          'DEFICIT': 'bg-slate-100 text-slate-700 border-slate-200'
+        };
+        tr.innerHTML = `
+          <td class="py-3 px-3 font-semibold text-slate-900">
+            ${e.conceptName}
+            ${e.hadSpeedDefense ? '<span class="block text-[10px] text-amber-600 font-normal">⚡ Speed Limit 방어 발동</span>' : ''}
+          </td>
+          <td class="py-3 px-3">
+            <span class="font-mono font-bold">${e.totalActualSec}s</span> 
+            <span class="text-slate-400">/ ${e.totalStandardSec}s</span>
+            <span class="text-[10px] text-slate-500 font-mono ml-1">(R=${e.avgRatio})</span>
+          </td>
+          <td class="py-3 px-3 font-mono font-semibold">${e.totalHesitation}회</td>
+          <td class="py-3 px-3">
+            <span class="text-[11px] font-bold px-2 py-0.5 rounded-full border ${badgeColors[e.status]}">
+              ${e.statusTitle}
+            </span>
+          </td>
+        `;
+        tableBody.appendChild(tr);
+      });
+    }
+
+    function renderCustomPracticeCards(evaluations) {
+      const container = document.getElementById('custom-practice-container');
+      if (!container) return;
+      container.innerHTML = '';
+
+      const concepts = TOPIC_DATABASE['IT_DEV'].concepts;
+
+      concepts.forEach((concept, idx) => {
+        const evaluation = evaluations.find(e => e.conceptId === concept.id);
+        const statusTitle = evaluation ? evaluation.statusTitle : '진단 미완료';
+        const isIllusion = evaluation && evaluation.status === 'ILLUSION';
+
+        const card = document.createElement('div');
+        card.className = `p-5 rounded-2xl border transition-all flex flex-col justify-between ${
+          isIllusion 
+            ? 'bg-gradient-to-b from-danger-50/50 to-white border-danger-300 ring-2 ring-danger-100' 
+            : 'bg-white border-slate-200 hover:border-brand-300 shadow-xs'
+        }`;
+
+        card.innerHTML = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-[11px] font-black px-2 py-0.5 rounded-md bg-slate-100 text-slate-700">
+                카테고리 0${idx + 1}
+              </span>
+              <span class="text-[11px] font-bold ${
+                isIllusion ? 'text-danger-700 bg-danger-100 px-2 py-0.5 rounded-full' : 'text-slate-500'
+              }">
+                ${statusTitle}
+              </span>
+            </div>
+            <div>
+              <h4 class="text-sm font-bold text-slate-900 leading-snug">${concept.name}</h4>
+              <p class="text-[11px] text-slate-500 mt-1 line-clamp-2 leading-relaxed">${concept.desc}</p>
+            </div>
+          </div>
+
+          <div class="pt-4 mt-3 border-t border-slate-100 space-y-2">
+            <span class="text-[11px] font-bold text-slate-600 block mb-1">
+              <i class="fa-solid fa-sliders text-brand-600 mr-1"></i> 도전할 단계를 선택하세요:
+            </span>
+            
+            <button onclick="startCustomLevelQuiz(${idx}, 1)" 
+                    class="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-emerald-400 hover:bg-emerald-50/40 transition group flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-emerald-100 text-emerald-700 flex items-center justify-center text-xs font-black shrink-0">1</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-800 group-hover:text-emerald-800">1단계: 기초 개념 정의</p>
+                  <p class="text-[10px] text-slate-400">핵심 용어 및 필수 조건 식별</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-play text-slate-300 group-hover:text-emerald-600 text-xs"></i>
+            </button>
+
+            <button onclick="startCustomLevelQuiz(${idx}, 2)" 
+                    class="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-amber-400 hover:bg-amber-50/40 transition group flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-amber-100 text-amber-700 flex items-center justify-center text-xs font-black shrink-0">2</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-800 group-hover:text-amber-800">2단계: 실생활 적용 시나리오</p>
+                  <p class="text-[10px] text-slate-400">현실 상황 및 시스템 장애 투영</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-play text-slate-300 group-hover:text-amber-600 text-xs"></i>
+            </button>
+
+            <button onclick="startCustomLevelQuiz(${idx}, 3)" 
+                    class="w-full text-left p-2.5 rounded-xl border border-slate-200 hover:border-purple-400 hover:bg-purple-50/40 transition group flex items-center justify-between">
+              <div class="flex items-center gap-2">
+                <span class="w-6 h-6 rounded-lg bg-purple-100 text-purple-700 flex items-center justify-center text-xs font-black shrink-0">3</span>
+                <div>
+                  <p class="text-xs font-bold text-slate-800 group-hover:text-purple-800">3단계: 실무 엣지 트러블슈팅</p>
+                  <p class="text-[10px] text-slate-400">반례 분석 및 동시성 코드 디버깅</p>
+                </div>
+              </div>
+              <i class="fa-solid fa-play text-slate-300 group-hover:text-purple-600 text-xs"></i>
+            </button>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function startCustomLevelQuiz(conceptIndex, level) {
+      APP_STATE.currentConceptIndex = conceptIndex;
+      APP_STATE.currentQuizLevel = level;
+      APP_STATE.isCustomPractice = true;
+      APP_STATE.isSpeedDefenseTriggered = false;
+
+      const concept = TOPIC_DATABASE['IT_DEV'].concepts[conceptIndex];
+      const levelNames = { 1: '1단계(기초 정의)', 2: '2단계(실생활 적용)', 3: '3단계(심화 트러블슈팅)' };
+
+      showToast(`'${concept.name}'의 ${levelNames[level]} 집중 풀이를 시작합니다.`, 'info');
+      navigateTo('view-quiz');
+      loadConceptQuiz();
+    }
+
+    function renderReviewDeck(evaluations) {
+      if (evaluations) {
+        APP_STATE.currentReviewEvaluations = evaluations.map(e => ({
+          ...e,
+          isReviewed: e.isReviewed || false
+        }));
+      }
+      const items = APP_STATE.currentReviewEvaluations || [];
+      const sorted = [...items].sort((a, b) => a.priority - b.priority);
+      const container = document.getElementById('review-cards-container');
+      container.innerHTML = '';
+
+      updateReviewProgressUI(sorted);
+
+      sorted.forEach((item, idx) => {
+        const card = document.createElement('div');
+        const isIllusion = (item.status === 'ILLUSION');
+        const isDone = Boolean(item.isReviewed);
+
+        card.className = `p-6 rounded-2xl border transition shadow-sm ${
+          isDone
+            ? 'bg-emerald-50/20 border-emerald-200/90'
+            : (isIllusion ? 'bg-danger-50/40 border-danger-300 ring-2 ring-danger-100' : 'bg-white border-slate-200')
+        }`;
+
+        card.innerHTML = `
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b ${
+            isDone ? 'border-emerald-200/60' : (isIllusion ? 'border-danger-200' : 'border-slate-100')
+          } pb-4">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="px-2.5 py-1 rounded-lg text-xs font-black ${
+                isDone ? 'bg-emerald-600 text-white' : (isIllusion ? 'bg-danger-600 text-white' : 'bg-slate-800 text-white')
+              }">
+                복습 ${idx + 1}순위
+              </span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold bg-indigo-50 text-indigo-700 border border-indigo-200">
+                ${APP_STATE.currentSubject}
+              </span>
+              <h3 class="text-base font-bold text-slate-900 ${isDone ? 'line-through text-slate-500' : ''}">
+                ${item.conceptName}
+              </h3>
+              ${isDone ? '<span class="text-[11px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800 border border-emerald-300"><i class="fa-solid fa-circle-check mr-1"></i>체화 완료 🟢</span>' : ''}
+            </div>
+            <span class="text-xs font-bold px-2.5 py-0.5 rounded-full self-start sm:self-auto ${
+              isDone ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : (isIllusion ? 'bg-danger-100 text-danger-800' : 'bg-slate-100 text-slate-700')
+            }">
+              ${isDone ? '🟢 복습 완료 상태' : item.statusTitle}
+            </span>
+          </div>
+
+          <div class="py-4 space-y-3">
+            <div class="text-xs text-slate-600">
+              <strong class="text-slate-800">틀린 문항 지문:</strong>
+              <p class="mt-1 p-3 rounded-xl bg-white border border-slate-200 text-slate-700 italic">
+                "${item.failedLog.questionText}"
+              </p>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
+              <div class="p-3 rounded-xl bg-danger-50/60 border border-danger-100">
+                <span class="text-[11px] font-bold text-danger-700 block mb-1">❌ 내가 선택했던 오답</span>
+                <p class="text-slate-800 font-medium">${item.failedLog.userOptionText}</p>
+              </div>
+              <div class="p-3 rounded-xl bg-emerald-50/60 border border-emerald-100">
+                <span class="text-[11px] font-bold text-emerald-700 block mb-1">⭕ 실무/실생활 정답 해설</span>
+                <p class="text-slate-800 font-medium">${item.failedLog.explanation}</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-3.5 border-t ${
+            isDone ? 'border-emerald-200/60' : (isIllusion ? 'border-danger-200' : 'border-slate-100')
+          } flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <span class="text-xs text-slate-500">
+              풀이 시간: <strong class="text-slate-800">${item.totalActualSec}초</strong> · 번복: <strong class="text-slate-800">${item.totalHesitation}회</strong>
+            </span>
+            <div class="flex items-center gap-2 self-end sm:self-auto">
+              <button onclick="toggleConceptReviewComplete('${item.conceptId}')" class="px-3.5 py-2 rounded-xl text-xs font-bold transition flex items-center gap-1.5 shadow-xs ${
+                isDone
+                  ? 'bg-emerald-600 text-white hover:bg-emerald-700 active:scale-95'
+                  : 'bg-white border border-slate-300 text-slate-700 hover:border-emerald-500 hover:text-emerald-700 hover:bg-emerald-50/50'
+              }">
+                <i class="fa-solid ${isDone ? 'fa-square-check text-white' : 'fa-check text-emerald-600'}"></i>
+                <span>${isDone ? '체화 완료됨 (취소 가능)' : '✓ 이해 완료 (복습 완료)'}</span>
+              </button>
+              <button onclick="retryScenarioConcept('${item.conceptName}')" class="px-3.5 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold transition flex items-center gap-1.5">
+                <i class="fa-solid fa-rotate-right"></i>
+                <span>유사 변형 시나리오 재도전</span>
+              </button>
+            </div>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function toggleConceptReviewComplete(conceptId) {
+      if (!APP_STATE.currentReviewEvaluations) return;
+      const target = APP_STATE.currentReviewEvaluations.find(e => e.conceptId === conceptId);
+      if (!target) return;
+
+      target.isReviewed = !target.isReviewed;
+
+      if (APP_STATE.studyHistory.length > 0) {
+        const activeHist = APP_STATE.studyHistory[0];
+        if (target.status === 'ILLUSION') {
+          if (target.isReviewed) {
+            activeHist.counts.illusion = Math.max(0, activeHist.counts.illusion - 1);
+            activeHist.counts.mastery += 1;
+          } else {
+            activeHist.counts.illusion += 1;
+            activeHist.counts.mastery = Math.max(0, activeHist.counts.mastery - 1);
+          }
+          activeHist.hasUnresolvedIllusion = (activeHist.counts.illusion > 0);
+          if (!activeHist.hasUnresolvedIllusion) {
+            activeHist.keyIllusionConcept = null;
+          }
+        }
+        renderHistorySessions();
+      }
+
+      if (target.isReviewed) {
+        showToast(`'${target.conceptName}'의 복습을 완료 처리했습니다! 체화 상태로 갱신됩니다. 🟢`, 'success');
+      } else {
+        showToast(`'${target.conceptName}' 복습이 미완료 상태로 전환되었습니다.`, 'info');
+      }
+
+      renderReviewDeck();
+    }
+
+    function updateReviewProgressUI(items) {
+      const total = items.length;
+      if (total === 0) return;
+      const completed = items.filter(i => i.isReviewed).length;
+      const pct = Math.round((completed / total) * 100);
+
+      const countEl = document.getElementById('review-progress-count');
+      const barEl = document.getElementById('review-progress-bar');
+      const statusEl = document.getElementById('review-progress-status');
+
+      if (countEl) {
+        countEl.innerText = `${completed} / ${total}개 완료 (${pct}%)`;
+        countEl.className = completed === total
+          ? 'px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800 font-black text-xs border border-emerald-300'
+          : 'px-2.5 py-0.5 rounded-full bg-brand-50 text-brand-700 font-black text-xs border border-brand-200';
+      }
+      if (barEl) {
+        barEl.style.width = `${pct}%`;
+        barEl.className = completed === total
+          ? 'h-full bg-emerald-600 transition-all duration-300 rounded-full'
+          : 'h-full bg-brand-500 transition-all duration-300 rounded-full';
+      }
+      if (statusEl) {
+        if (completed === total) {
+          statusEl.innerHTML = `<span class="text-emerald-700 font-bold"><i class="fa-solid fa-circle-check mr-1 text-emerald-600"></i>모든 취약 개념의 복습이 완료되었습니다! 🟢</span>`;
+        } else {
+          statusEl.innerHTML = `<i class="fa-solid fa-circle-info text-slate-400 mr-1"></i><span>남은 ${total - completed}개의 오답 원리를 확인하고 '이해 완료'를 누르세요.</span>`;
+        }
+      }
+    }
+
+    function finishAllReviewAndGoHome() {
+      const items = APP_STATE.currentReviewEvaluations || [];
+      const completed = items.filter(i => i.isReviewed).length;
+      const total = items.length;
+
+      if (completed === total && total > 0) {
+        showToast('🎉 모든 취약점의 복습을 마쳤습니다! 홈으로 이동합니다.', 'success');
+      } else {
+        showToast('복습 세션을 종료하고 홈 화면으로 이동합니다.', 'info');
+      }
+      navigateTo('view-home');
+    }
+
+    function retryScenarioConcept(conceptName) {
+      showToast(`'${conceptName}'의 새로운 변형 실생활 시나리오 문항을 로드합니다.`, 'info');
+      APP_STATE.currentConceptIndex = 0;
+      APP_STATE.currentQuizLevel = 2;
+      APP_STATE.isSpeedDefenseTriggered = false;
+      navigateTo('view-quiz');
+      loadConceptQuiz();
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      updateAuthHeader();
+      renderSubjectFilterChips();
+      renderHistorySessions();
+      navigateTo('view-auth');
+      setTimeout(() => {
+        openIntroServiceModal();
+      }, 350);
+    });
+  </script>
+</body>
+</html>

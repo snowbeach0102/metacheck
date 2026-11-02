@@ -35,3 +35,9 @@ out/
 
 ### VS Code ###
 .vscode/
+
+### 로컬 비밀 설정 (DB 비밀번호 등) — 절대 올리지 말 것 ###
+/config/*
+!/config/*.example
+/application.properties
+/application-*.properties

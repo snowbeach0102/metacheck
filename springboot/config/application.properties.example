@@ -1,0 +1,5 @@
+# 이 파일을 config/application.properties 로 복사한 뒤 실제 값을 채운다. (복사본은 git이 무시한다)
+# 실제 접속 주소 · 계정 · 비밀번호는 서버 관리 담당에게 받는다.
+spring.datasource.url=jdbc:mysql://<DB 주소>:3306/metacheck?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
+spring.datasource.username=<DB 계정>
+spring.datasource.password=<DB 비밀번호>

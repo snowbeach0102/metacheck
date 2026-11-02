@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, interactive-widget=resizes-content">
-<meta name="theme-color" content="#F2F4F6" id="meta-theme">
+<meta name="theme-color" content="#F2F4F6">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
@@ -16,7 +16,7 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 <script src="https://cdn.tailwindcss.com"></script>
 <script>
-  // 모든 색은 CSS 변수(RGB)로 두고, 라이트 · 다크 테마에서는 변수 값만 바꿉니다
+  // 모든 색은 CSS 변수(RGB)로 둡니다
   const tok = (n) => `rgb(var(--${n}) / <alpha-value>)`;
   const scale = (name, steps) => Object.fromEntries(steps.map((s) => [s, tok(`${name}-${s}`)]));
   const ALL = [50, 100, 200, 300, 400, 500, 600, 700, 800, 900];
@@ -86,51 +86,12 @@
     --shadow-card: 0 1px 2px rgba(25,31,40,.04), 0 6px 20px rgba(25,31,40,.05);
     --shadow-float: 0 10px 40px rgba(25,31,40,.16);
     /* [index5] 글씨가 올라가는 '솔리드' 배경색 — 예전엔 brand-500 · illusion-500에 흰 글씨(3.3~3.7:1)라 흐렸어요 → 4.8:1 이상이 되는 한 단계 진한 색
-       (브랜드 색 자체 · 진행 막대 · 로고 · 아이콘 배경은 그대로 brand-500). 다크에서는 -600 토큰이 '밝은 글씨용'으로 뒤집히므로 별도 값을 써요 */
+       (브랜드 색 자체 · 진행 막대 · 로고 · 아이콘 배경은 그대로 brand-500) */
     --solid-brand: 27 100 218; --solid-brand-hover: 21 84 184;
     --solid-danger: 217 45 59; --solid-danger-hover: 178 31 44;
     --solid-mastery: 8 127 91; --solid-mastery-hover: 6 105 76;
     --solid-deficit: 124 58 237; --solid-deficit-hover: 109 40 217;
     color-scheme: light;
-  }
-  /* 다크 테마: 차트 색은 어두운 배경 기준으로 따로 검증한 값 */
-  @media (prefers-color-scheme: dark) {
-    :root:not([data-theme="light"]) {
-      --canvas: 18 19 23; --surface: 28 30 35;
-      --brand-50: 23 36 58; --brand-100: 29 47 77; --brand-200: 39 65 112; --brand-300: 62 98 168; --brand-400: 79 134 232;
-      --brand-500: 76 141 246; --brand-600: 106 162 248; --brand-700: 141 184 250; --brand-800: 169 201 251; --brand-900: 201 221 253;
-      --ink-50: 36 38 44; --ink-100: 43 45 52; --ink-200: 54 57 67; --ink-300: 71 75 85; --ink-400: 118 124 136;
-      --ink-500: 148 154 166; --ink-600: 158 164 174; --ink-700: 188 193 200; --ink-800: 215 219 224; --ink-900: 241 243 245;
-      --illusion-50: 58 28 33; --illusion-100: 74 33 39; --illusion-200: 107 42 51; --illusion-500: 232 80 92; --illusion-600: 255 122 133; --illusion-700: 255 163 171;
-      --unstable-50: 58 42 16; --unstable-100: 74 54 19; --unstable-200: 107 78 26; --unstable-500: 201 131 20; --unstable-600: 247 184 79; --unstable-700: 255 208 132;
-      --deficit-50: 35 29 61; --deficit-100: 44 36 80; --deficit-200: 61 50 112; --deficit-500: 142 115 232; --deficit-600: 165 143 240; --deficit-700: 196 181 250;
-      --mastery-50: 16 48 42; --mastery-100: 20 61 52; --mastery-200: 28 90 74; --mastery-500: 29 168 122; --mastery-600: 79 217 168; --mastery-700: 134 232 196;
-      --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
-      --shadow-float: 0 10px 40px rgba(0,0,0,.5);
-      --solid-brand: 37 99 235; --solid-brand-hover: 29 78 216;
-      --solid-danger: 201 42 56; --solid-danger-hover: 168 32 46;
-      --solid-mastery: 14 120 88; --solid-mastery-hover: 11 100 73;
-      --solid-deficit: 109 40 217; --solid-deficit-hover: 91 33 182;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"] {
-    --canvas: 18 19 23; --surface: 28 30 35;
-    --brand-50: 23 36 58; --brand-100: 29 47 77; --brand-200: 39 65 112; --brand-300: 62 98 168; --brand-400: 79 134 232;
-    --brand-500: 76 141 246; --brand-600: 106 162 248; --brand-700: 141 184 250; --brand-800: 169 201 251; --brand-900: 201 221 253;
-    --ink-50: 36 38 44; --ink-100: 43 45 52; --ink-200: 54 57 67; --ink-300: 71 75 85; --ink-400: 118 124 136;
-    --ink-500: 148 154 166; --ink-600: 158 164 174; --ink-700: 188 193 200; --ink-800: 215 219 224; --ink-900: 241 243 245;
-    --illusion-50: 58 28 33; --illusion-100: 74 33 39; --illusion-200: 107 42 51; --illusion-500: 232 80 92; --illusion-600: 255 122 133; --illusion-700: 255 163 171;
-    --unstable-50: 58 42 16; --unstable-100: 74 54 19; --unstable-200: 107 78 26; --unstable-500: 201 131 20; --unstable-600: 247 184 79; --unstable-700: 255 208 132;
-    --deficit-50: 35 29 61; --deficit-100: 44 36 80; --deficit-200: 61 50 112; --deficit-500: 142 115 232; --deficit-600: 165 143 240; --deficit-700: 196 181 250;
-    --mastery-50: 16 48 42; --mastery-100: 20 61 52; --mastery-200: 28 90 74; --mastery-500: 29 168 122; --mastery-600: 79 217 168; --mastery-700: 134 232 196;
-    --shadow-card: 0 1px 2px rgba(0,0,0,.3), 0 6px 20px rgba(0,0,0,.25);
-    --shadow-float: 0 10px 40px rgba(0,0,0,.5);
-    --solid-brand: 37 99 235; --solid-brand-hover: 29 78 216;
-    --solid-danger: 201 42 56; --solid-danger-hover: 168 32 46;
-    --solid-mastery: 14 120 88; --solid-mastery-hover: 11 100 73;
-    --solid-deficit: 109 40 217; --solid-deficit-hover: 91 33 182;
-    color-scheme: dark;
   }
   html { -webkit-text-size-adjust: 100%; }
   body { background: rgb(var(--canvas)); -webkit-tap-highlight-color: transparent; }
@@ -190,15 +151,6 @@
   .mark:hover, .mark:focus-visible { filter: brightness(1.12); }
   @keyframes shake { 10%, 90% { transform: translateX(-1px); } 20%, 80% { transform: translateX(2px); } 30%, 50%, 70% { transform: translateX(-5px); } 40%, 60% { transform: translateX(5px); } }
   .shake { animation: shake .4s both; }
-  /* 세그먼트 테마 토글: 활성 하이라이트가 좌우로 미끄러짐 (살짝 튕기는 곡선) */
-  /* 고대비 테마 스위치: 트랙은 테마와 무관하게 아주 어둡게(인셋) · 썸은 밝게 띄움 · 활성 아이콘 진하게 / 비활성 아이콘은 트랙에 묻힘 */
-  .theme-track { background: #0B0E14; box-shadow: inset 0 2px 6px rgba(0,0,0,.8), inset 0 -1px 0 rgba(255,255,255,.07), 0 0 0 1px rgba(255,255,255,.06); }
-  .theme-thumb { background: #FFFFFF; box-shadow: 0 2px 8px rgba(0,0,0,.55), inset 0 -2px 0 rgba(15,23,42,.08); transition: transform .38s cubic-bezier(.34,1.45,.64,1); }
-  .tt-btn { color: rgba(255,255,255,.3); transition: color .25s, transform .2s; }
-  .tt-btn:hover { color: rgba(255,255,255,.55); }
-  .tt-btn:active { transform: scale(.9); }
-  .tt-btn.is-on[data-k="light"] { color: #D97706; }
-  .tt-btn.is-on[data-k="dark"] { color: #312E81; }
   /* 효과음 on/off 스위치 */
   .sw { position: relative; width: 52px; height: 32px; flex-shrink: 0; border-radius: 9999px; background: rgb(var(--ink-300)); transition: background-color .25s; }
   .sw[aria-checked="true"] { background: rgb(var(--brand-500)); }
@@ -212,8 +164,7 @@
   /* 가상 키보드: 입력창이 끈적한 헤더 · 하단 바에 붙지 않게 여백, 키보드가 열리면 하단 탭 바 숨김 · 바텀 시트는 키보드 위로 */
   input, textarea { scroll-margin: 72px 0 96px; }
   .kb-open #bottom-nav { display: none !important; }
-  /* [index5] 색 상자(빨강 · 보라 · 파랑 · 초록) 위의 흰 버튼 — 배경이 흰색으로 고정인데 글자색을 테마 토큰(text-illusion-600 …)으로 두면
-     다크에서 토큰이 밝은 색으로 바뀌어 '흰 바탕에 연분홍 글씨'(2.5:1)가 됐어요 → 글자색도 라이트 값으로 고정해 두 테마 모두 같게 (5:1 이상) */
+  /* [index5] 색 상자(빨강 · 보라 · 파랑 · 초록) 위의 흰 버튼 — 배경이 흰색으로 고정이라 글자색도 고정 값으로 (5:1 이상) */
   .bg-solid-brand { background-color: rgb(var(--solid-brand)); } .hover\:bg-solid-brand-hover:hover { background-color: rgb(var(--solid-brand-hover)); }
   .bg-solid-danger { background-color: rgb(var(--solid-danger)); } .hover\:bg-solid-danger-hover:hover { background-color: rgb(var(--solid-danger-hover)); }
   .bg-solid-mastery { background-color: rgb(var(--solid-mastery)); } .hover\:bg-solid-mastery-hover:hover { background-color: rgb(var(--solid-mastery-hover)); }
@@ -224,7 +175,7 @@
   .btn-on-color.on-illusion { color: #C4283A; }
   .btn-on-color.on-brand { color: #1554B8; }
   .btn-on-color.on-mastery { color: #087F5B; }
-  /* [index5] 노랑(불안정) 동그라미 번호: 흰 글씨는 2.2:1이라 어두운 글씨로 고정 (라이트 · 다크 모두 5:1 이상) */
+  /* [index5] 노랑(불안정) 동그라미 번호: 흰 글씨는 2.2:1이라 어두운 글씨로 고정 (5:1 이상) */
   .on-amber { color: #191F28; }
   .kb-open .home-cta { bottom: 0 !important; } /* [index5] 하단 탭 바가 숨겨지면 홈 [진단 시작] 바도 바닥으로 */
   /* [index5] 가로 모드 폰(높이 500px 이하, 예: 812×375) — 하단 고정 [진단 시작] 바가 화면의 약 20%를 가려서, 처음 열면 과목 입력칸이 바 뒤에 반쯤 가려졌어요
@@ -262,7 +213,7 @@
   body { transition: background-color .3s ease, color .3s ease; }
   /* ---------- [index4] 배경 장식 ----------
    * 콘텐츠 뒤(z-index: -1)에 고정된 두 겹:
-   *  ① 위쪽 가운데에서 가장자리로 갈수록 사라지는 아주 옅은 그리드 (테마의 ink 색 · 4~6% 불투명)
+   *  ① 위쪽 가운데에서 가장자리로 갈수록 사라지는 아주 옅은 그리드 (ink 색 · 4~6% 불투명)
    *  ② 천천히 떠다니는 브랜드 · 보조색 빛 번짐 3개 (radial-gradient — blur 필터 없이 가볍게)
    * 카드 · 입력창은 불투명한 표면이라 본문 글자 대비에는 영향이 없어요.
    * 문제 풀이 화면에서는 더 옅게 · 멈춤(몰입), '동작 줄이기' 설정이면 애니메이션을 멈춰요 */
@@ -283,9 +234,6 @@
     50% { transform: translate3d(4vmax, 3vmax, 0) scale(1.06); }
     100% { transform: translate3d(-3vmax, 5vmax, 0) scale(.95); }
   }
-  /* 다크 테마: 빛 번짐은 조금 낮추고(깊은 색 글로우) 그리드는 밝은 선으로 살짝 더 */
-  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) #bg-deco { --blob-a: .7; --grid-a: .05; } }
-  :root[data-theme="dark"] #bg-deco { --blob-a: .7; --grid-a: .05; }
   /* 문제 풀이 중에는 배경을 더 옅게 · 멈춰서 지문에 집중 */
   html[data-view="quiz"] #bg-deco { opacity: .35; }
   html[data-view="quiz"] #bg-deco .blob { animation-play-state: paused; }
@@ -359,7 +307,7 @@
 'use strict';
 /* =====================================================================
  * [index5] index4에서 바뀐 곳 — 기존 화면 · 데이터 구조 · 2×2 판정 · 탭 · 색은 그대로 두고 더하기만 했어요
- *  ① 회원가입 시트: 직업군 칩 2개(대학생(전공/교양) · 자격증/공시생) → S.user.persona  (openAuthSheet · handleAuth · 'pick-persona')
+ *  ① 회원가입 시트: 직업군 칩 2개(대학생(전공/교양) · 자격증) → S.user.persona  (openAuthSheet · handleAuth · 'pick-persona')
  *  ② 세부 요구사항(입력창 + 빠른 입력 칩)을 홈 '단원' 칸 바로 아래로 꺼냈어요 (promptFieldHTML · 키워드 · PDF 탭 공통)
  *     바인딩: <textarea data-bind="customPrompt"> → 공통 input 핸들러 → S.setup.customPrompt → syncQuickChips()가 칩 · 글자 수 갱신
  *     '학습 목적' 칩은 세부 요구사항과 겹쳐 없앴고, 진단 설정 시트(SH-02)는 진단 방식 · 문항 수만 다뤄요
@@ -455,10 +403,23 @@
  *     · 사분면: 같은 문제를 다시 푼 문항 수를 알려 줘요 (사분면 '착각 7' vs 복습 '착각 6'처럼 숫자가 달라 보이던 이유)
  *       복습 카드로 가는 문항(🟢 제외) 중에 겹친 문제가 있을 때만 — 모두 맞혀 카드가 없으면 안내하지 않아요
  *     · 진단 완료 팡파르 + 폭죽은 결과가 좋을 때만 (착각 0 · 정답률 80% 이상)
- *     · 로그인 · 회원가입: 비밀번호 칸 삭제('이름과 이메일만' 문구와 맞춤) · '데모 계정 채우기'는 ?dev=1에서만
+ *     · 로그인 · 회원가입: '데모 계정 채우기'는 ?dev=1에서만
+ *     · 로그인 · 회원가입: 비밀번호 칸 다시 추가 (가입 8자 이상 · 영문 + 숫자 · 보기/숨기기) — 원문 대신 PBKDF2 해시만 S.accounts에 보관,
+ *       로그인은 가입한 이메일 + 비밀번호가 맞아야 · 틀리면 어느 쪽인지 밝히지 않음 · 계정은 로그아웃 · 기록 초기화 뒤에도 남음
  *     · 복습 선택 시트: 집중 연습은 연습한 개념 이름 + '집중 연습 · 🌱 기초 3문항'으로(entryTitle · practiceTag)
  *       '모든 과목 모아보기'는 과목이 2개 이상일 때만 (하나뿐이면 '이 과목 전체 모아보기'와 같은 덱)
  *     · 학습 기록 카드 · 결과 화면 제목도 집중 연습은 같은 이름(entryTitle · practiceTag)으로
+ *  ⑰ [10/22 팀 확정] 회원 탈퇴 — 계정 시트(SH-01) 맨 아래 [회원 탈퇴] (가입한 계정으로 로그인했을 때만 · 게스트는 [모든 기록 초기화]만)
+ *     → 탈퇴 확인 시트(SH-11 · openWithdrawSheet): 지울 것을 알리고 비밀번호를 한 번 더 받아요 (가입 때와 같은 PBKDF2 해시로 확인)
+ *     → withdrawAccount(): 이 계정(S.accounts[이메일]) + 이 브라우저의 진단 기록 · 복습 상태 · 진행 중인 진단 · 내 서재 · 설정을 모두 지우고
+ *       시작 화면으로 (이 브라우저에 가입한 다른 계정은 남겨요). 실서비스는 서버가 회원과 딸린 데이터를 한 트랜잭션으로 지워요(테이블 명세서)
+ *     · 직업군 칩 이름: 대학생(전공/교양) · 자격증 (2개로 정리)
+ *  ⑱ [10/25 변경] 직업군 · 복습 카드를 팀 ERD v5 기준으로 (10/24 '항상 대학생' 결정을 되돌림)
+ *     · 직업군은 '선택 안 함'(없음)이 될 수 있어요 — 게스트 · 가입 때 안 고른 회원은 선택 안 함이고, 선택한 칩을 다시 누르면 해제돼요
+ *       출제 수준(levelOf): 선택 안 함 · 대학생 = 대학생 수준, 자격증 = 자격증 수준. AI 요청에는 직업군이 없으면 UNIVERSITY로 바꿔 보내요(DEFAULT_PERSONA)
+ *     · 직업군을 바꿔도 출제 수준이 그대로면(대학생 ↔ 선택 안 함) 진단을 지우지 않고 확인 창도 없어요 — 수준이 바뀔 때(대학생 · 선택 안 함 ↔ 자격증)만 그동안 푼 진단을 지우고 확인 창을 띄워요
+ *     · 유사 문제(재도전) 풀이는 복습 카드를 새로 만들지 않아요 — 원래 카드에 재도전 결과만 기록(finishRetry)
+ *     · 확인 문항은 틀리면 복습 카드가 돼요(확신하고 틀리면 착각 · 30%로 찍고 틀리면 기초 학습 필요) — 할 일 목록에도 넣고 2×2 숫자에는 넣지 않아요
  * ===================================================================== */
 /* =====================================================================
  * 1) 문제은행 (데모용 샘플 4개 주제)
@@ -719,22 +680,27 @@ const REVIEW_INTERVALS = [1, 3, 7, 14]; // 간격 반복(일): 마지막 복습 
 const DAY_MS = 864e5;
 
 /* [index5] 맞춤 출제 입력값 — 코드 값(키)은 저장 · API 전송용, 라벨은 화면 표시용
- *  - PERSONAS: 회원가입 시트의 직업군 칩 → S.user.persona
+ *  - PERSONAS: 회원가입 시트의 직업군 칩 → S.user.persona (없으면 '선택 안 함' · 출제 수준은 levelOf)
  *  - QUICK_PROMPTS: 홈 '단원' 칸 바로 아래 세부 요구사항 입력창의 빠른 입력 칩 → S.setup.customPrompt에 ', '로 이어 붙임
  *  ('학습 목적' 칩은 세부 요구사항과 겹쳐 없앴어요 — 예전에 저장된 learningState는 sanitize()에서 정리)
  */
 // 핵심 타깃 두 그룹만 (예전의 취준생/직장인 · 기타 값은 sanitize()에서 정리)
 const PERSONAS = {
   UNIVERSITY: { icon: '🎓', label: '대학생(전공/교양)' },
-  CERT_EXAM:  { icon: '📝', label: '자격증/공시생' },
+  CERT_EXAM:  { icon: '📝', label: '자격증' }, // [10/22 팀 확정] 직업군은 대학생 · 자격증 2개 (키 CERT_EXAM은 DB · AI 사양과 같아서 그대로)
 };
+// [10/25 변경] 직업군은 '선택 안 함'(없음 = null)이 될 수 있어요. 출제 수준(levelOf)은 선택 안 함도 대학생 수준 — AI 요청에는 UNIVERSITY로 바꿔 보내요
+const DEFAULT_PERSONA = 'UNIVERSITY';
+const personaOf = (p) => (PERSONAS[p] ? p : null);          // 직업군 값 (없거나 목록 밖이면 null = 선택 안 함)
+const levelOf = (p) => (PERSONAS[p] ? p : DEFAULT_PERSONA); // 출제 수준 (선택 안 함 = 대학생 수준)
+const PERSONA_SHORT = { UNIVERSITY: '대학생', CERT_EXAM: '자격증' }; // 확인 창 문구용 짧은 이름
 const QUICK_PROMPTS = ['실생활 예시 위주로', '기출문제 스타일로', '헷갈리는 오답 위주로'];
 const PROMPT_MAX = 100; // 세부 요구사항 최대 글자 수
 const LONG_PRESS_MS = 600; // [index5] 보기를 이만큼 누르고 있으면 😎 100% 확신으로 바로 제출 (CSS .is-pressing 전환 시간과 같게)
 /** [index5] 개발용 화면(계정 시트의 '제품 검증 지표')은 주소 뒤에 ?dev=1을 붙였을 때만 보여요 — 지표 수집(track)은 그대로 하고, 사용자에게는 안 보여요 */
 const DEV_UI = /[?&]dev(=1|=true)?(&|$)/.test(location.search);
 const LIB_MAX_SUBJECTS = 20, LIB_MAX_UNITS = 30; // [index5] 내 서재 한도 (과목 수 · 과목당 단원 수)
-const EARLY_RESULT_MIN = 3; // [index5] 풀이 중 나가기 시트의 '지금까지 푼 N문항으로 결과 보기'는 이만큼 풀었을 때만
+const EARLY_RESULT_MIN = 3; // [index5] 풀이 중 나가기 시트의 '지금까지 푼 N문항으로 결과 보기'는 이만큼 풀었을 때만 (확인 문항은 빼고 센 본 문항 기준)
 
 // 단계가 올라갈수록 파란색이 진해져요
 const LEVELS = {
@@ -827,6 +793,7 @@ function seedHistory() {
 function freshState() {
   return {
     v: 4, user: null, tipDismissed: false, view: 'landing',
+    accounts: {},    // [index5] 가입한 계정: { 이메일(소문자): { email, nickname, persona?, salt, hash } } — 비밀번호 원문은 저장하지 않아요
     setup: { ...DEFAULT_SETUP },
     session: null,   // 진행 중인 진단 (새로고침해도 이어서 풀기)
     parked: null,    // 복습 재도전 중 잠시 보관한 진단
@@ -836,7 +803,7 @@ function freshState() {
     histFilter: { status: 'ALL', subject: 'ALL' },
     showSeconds: false,
     // 효과음 · 풀이 페이스 표시는 기본 꺼짐 (도서관 · 독서실 몰입 환경, 행동은 화면 뒤에서 조용히 기록)
-    prefs: { theme: 'system', reviewMode: 'card', sound: false, showPace: false, histTab: 'list', reviewIntroSeen: false }, // [index5] reviewIntroSeen: 복습 덱 안내 문구(뒤집기 · 해소 규칙)를 한 번 본 뒤엔 숨겨요
+    prefs: { reviewMode: 'card', sound: false, showPace: false, histTab: 'list', reviewIntroSeen: false }, // [index5] reviewIntroSeen: 복습 덱 안내 문구(뒤집기 · 해소 규칙)를 한 번 본 뒤엔 숨겨요
     celebrated: {},  // 복습 전부 해소 축하를 이미 보여 준 진단
     seenAnchors: false, // 확신도 기준 안내를 봤는지 (첫 진단 전에 한 번)
     metrics: [],     // 제품 검증 지표용 이벤트 (이 기기 안에서만)
@@ -864,6 +831,8 @@ function loadState() {
     delete out.setup.pdfName; delete out.setup.pdfSize;
     // 이전 버전에서 이어받을 때: 효과음은 사용자가 고른 값이 아니라 옛 기본값(켜짐)이었으므로 새 기본값(꺼짐)으로
     if (!cur) out.prefs.sound = false;
+    // [확정 10/19] 확인 문항을 집계에서 빼기로 바꿔서, 저장해 둔 요약 숫자(기록 카드 · 회차)를 새 기준으로 다시 계산해요
+    (Array.isArray(out.history) ? out.history : []).forEach((h) => { if (h && !h.sample && Array.isArray(h.logs) && h.logs.length && BANKS[h.bankId]) refreshSummary(h); });
     return out;
   } catch (e) {
     return freshState();
@@ -961,6 +930,7 @@ function createSession(o) {
     conceptIds, levels: Object.fromEntries(conceptIds.map((c) => [c, startLv])),
     turn: 0, seq: 0, used: {}, logs: [], pendingVerify: null, current: null,
     retryOf: o.retryOf || null, createdAt: new Date().toISOString(),
+    persona: personaOf(S.user && S.user.persona), // [확정 10/19] 이 진단을 만들 때의 직업군 — 출제 수준이 바뀌면 지워요 ([10/25] 선택 안 함 = null · 대학생 수준)
   };
 }
 
@@ -987,6 +957,9 @@ function setCurrent(sess, q, flags) {
   return sess.current;
 }
 
+/** [확정 10/19] 본 문항 수 — 요행 방지 확인 문항은 고른 문항 수에 세지 않고 항상 덤으로 내요 */
+const mainCount = (s) => s.logs.filter((l) => !l.isVerify).length;
+
 /** 다음 문항 결정. 반환값이 null이면 세션 종료 */
 function advance(sess) {
   // (1) Speed Limit 검증 문항이 대기 중이면 최우선 출제
@@ -998,8 +971,8 @@ function advance(sess) {
     if (src) src.verifyPending = false;
     sess.pendingVerify = null;
   }
-  // (2) 선택한 문항 수를 채우면 종료
-  if (sess.logs.length >= sess.total) return null;
+  // (2) 선택한 문항 수(본 문항)를 채우면 종료
+  if (mainCount(sess) >= sess.total) return null;
   // (3) 개념을 순환하며 각 개념의 현재 단계로 출제
   const cid = sess.conceptIds[sess.turn % sess.conceptIds.length];
   sess.turn += 1;
@@ -1164,7 +1137,7 @@ function classifyItem(log) {
   const reasons = [];
   if (log.conf === 'LOW') reasons.push('30% 찍어서 맞힘');
   if (log.conf === 'MEDIUM') reasons.push('70% 확신 — 아직 아리송');
-  if (log.speedFlag && log.verifyResult !== true) reasons.push(log.verifyResult === false ? '너무 빨리 맞혔고 확인 문항은 틀림 (요행)' : '최소 읽기 시간 미달 (성급한 풀이)');
+  if (log.speedFlag && log.verifyResult !== true) reasons.push(log.verifyResult === false ? '너무 빨리 맞혔고 확인 문항을 😎 100% 확신으로 맞히지 못함 (요행)' : '최소 읽기 시간 미달 (성급한 풀이)');
   if (log.hesitation >= 2) reasons.push(`보기 번복 ${log.hesitation}회`);
   if (log.ratio > SLOW_LIMIT) reasons.push(`권장 시간의 ${log.ratio.toFixed(1)}배 소요`);
   if (log.tabOut) reasons.push('풀이 중 화면 이탈');
@@ -1194,7 +1167,11 @@ function classifyConcept(c, its) {
 
 function evaluate(entry) {
   const bank = BANKS[entry.bankId];
-  const items = entry.logs.map((l, idx) => ({ ...l, idx, ...classifyItem(l) }));
+  // [확정 10/19] 요행 방지 확인 문항은 앞 문항의 실력을 확인하는 덤 문제 → 정답률 · 2×2 · 확실한 내 지식 · 개념 판정에서 빼요
+  //   all = 문항 기록 · 문항별 흐름(실제로 푼 순서 그대로) · verifyWrongs = 틀린 확인 문항 (집계엔 없지만 복습 카드는 만들어요 — 착각 · 기초 학습 필요)
+  const all = entry.logs.map((l, idx) => ({ ...l, idx, ...classifyItem(l) }));
+  const items = all.filter((i) => !i.isVerify);
+  const verifyWrongs = all.filter((i) => i.isVerify && !i.correct); // [10/25] 확신하고 틀리면 착각 · 30%로 찍고 틀리면 기초 학습 필요 — 둘 다 카드
   const counts = { ILLUSION: 0, INSTABILITY: 0, DEFICIT: 0, MASTERY: 0 };
   items.forEach((i) => { counts[i.status] += 1; });
   const accuracy = items.length ? items.filter((i) => i.correct).length / items.length : 0;
@@ -1206,7 +1183,7 @@ function evaluate(entry) {
     .map((c) => [c, items.filter((i) => i.cid === c.id)])
     .filter(([, its]) => its.length)
     .map(([c, its]) => classifyConcept(c, its));
-  return { bankId: entry.bankId, items, counts, accuracy, avgConf, gap: avgConf - accuracy, calibration, concepts };
+  return { bankId: entry.bankId, items, all, verifyWrongs, counts, accuracy, avgConf, gap: avgConf - accuracy, calibration, concepts };
 }
 
 function refreshSummary(entry) {
@@ -1216,12 +1193,14 @@ function refreshSummary(entry) {
   return ev;
 }
 
-/** 복습 덱: 완벽 제외, 착각(100% 확신 → 70%) → 불안정 → 노베이스 순. 같은 문항은 가장 급한 기록 하나만 */
+/** 복습 덱: 완벽 제외, 착각(100% 확신 → 70%) → 불안정 → 노베이스 순. 같은 문항은 가장 급한 기록 하나만
+ *  [확정 10/19] [10/25] 틀린 확인 문항(verifyWrongs)도 복습 카드로 — 착각 · 기초 학습 필요, 2×2 숫자에는 없어요
+ *  [10/24] 유사 문제(재도전) 풀이는 카드가 되지 않아요 — 재도전 세션은 진단 기록을 만들지 않으므로 여기에 들어올 문항이 없어요 */
 function reviewItems(h, ev) {
   if (!h || h.sample) return [];
   const e = ev || evaluate(h);
   const best = new Map();
-  e.items.filter((i) => i.status !== 'MASTERY').forEach((i) => {
+  [...e.items, ...e.verifyWrongs].filter((i) => i.status !== 'MASTERY').forEach((i) => {
     // AI 분석에서 보완 판정(📌 pinned)을 받은 문항은 복습 덱 맨 앞(1순위)으로
     const score = ((h.review[i.qid] || {}).pinned ? -100 : 0) + STATUS[i.status].rank * 10 + (i.conf === 'HIGH' ? 0 : i.conf === 'MEDIUM' ? 1 : 2);
     const prev = best.get(i.qid);
@@ -2174,7 +2153,7 @@ function homeNudgesHTML() {
   const rows = [];
   if (s && s.kind !== 'retry') {
     const ready = s.status === 'ready';
-    const done = s.logs.length;
+    const done = mainCount(s);
     rows.push(`
       <div class="card p-4 ring-1 ring-brand-200">
         <div class="flex items-center gap-3">
@@ -2396,9 +2375,10 @@ function renderQuiz(focusIndex) {
   const q = getQ(cur.qid);
   const concept = conceptOf(s.bankId, cur.cid);
   const reveal = cur.phase === 'feedback';
-  const num = s.logs.length + (cur.phase === 'answering' ? 1 : 0);
-  const progressLabel = s.kind === 'retry' ? '유사 문제 재도전' : num > s.total ? '추가 확인 문항' : `${num} / ${s.total}`;
-  const progress = s.kind === 'retry' ? (reveal ? 100 : 0) : Math.min(100, pct(s.logs.length / s.total));
+  const mainDone = mainCount(s); // [확정 10/19] 확인 문항은 문항 수에 세지 않아요 → 확인 문항을 푸는 동안은 '추가 확인 문항'
+  const num = mainDone + (cur.phase === 'answering' && !cur.isVerify ? 1 : 0);
+  const progressLabel = s.kind === 'retry' ? '유사 문제 재도전' : cur.isVerify ? '추가 확인 문항' : `${num} / ${s.total}`;
+  const progress = s.kind === 'retry' ? (reveal ? 100 : 0) : Math.min(100, pct(mainDone / s.total));
   const fresh = RT.lastQ !== cur.qid + s.seq; // 새 문항일 때만 등장 애니메이션
   RT.lastQ = cur.qid + s.seq;
   $('#view-quiz').innerHTML = `
@@ -2409,7 +2389,7 @@ function renderQuiz(focusIndex) {
       <button type="button" class="icon-btn" data-action="open-exit" aria-label="진단 멈추기"><i class="fa-solid fa-xmark text-lg"></i></button>
       <div class="flex-1 min-w-0">
         <div class="flex items-center justify-between text-xs font-bold"><span class="text-ink-800 tnum">${progressLabel}</span><span class="text-ink-500 truncate ml-2">${esc(s.subject)}</span></div>
-        <div class="mt-1.5 h-1.5 rounded-full bg-ink-200 overflow-hidden" role="progressbar" aria-label="진행률" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${s.logs.length}"><div class="h-full rounded-full bg-brand-500 transition-all duration-500" style="width:${progress}%"></div></div>
+        <div class="mt-1.5 h-1.5 rounded-full bg-ink-200 overflow-hidden" role="progressbar" aria-label="진행률" aria-valuemin="0" aria-valuemax="${s.total}" aria-valuenow="${mainDone}"><div class="h-full rounded-full bg-brand-500 transition-all duration-500" style="width:${progress}%"></div></div>
       </div>
       ${paceHTML(cur, q)}
     </div>
@@ -2533,7 +2513,7 @@ function dockHTML(s, cur, q) {
   }
   const log = s.logs[cur.logIndex];
   const it = classifyItem(log);
-  const last = s.kind === 'retry' || (s.logs.length >= s.total && !s.pendingVerify);
+  const last = s.kind === 'retry' || (mainCount(s) >= s.total && !s.pendingVerify);
   const label = s.kind === 'retry' ? '복습 덱으로 돌아가기' : last ? '결과 리포트 보기' : '다음 문제';
   // [index5] 유사 문제 재도전: 이번 풀이의 판정 문구('맞혔지만 아직 흔들려요')와 덱의 해소 결과가 어긋나 보이지 않게
   //          해소됐는지 · 왜 안 됐는지를 먼저 말해요 (조건은 finishRetry와 같아요: 착각 = 😎 100% 정답, 그 밖 = 🤔 70% 이상 정답)
@@ -2726,7 +2706,8 @@ const TODO_GROUPS = [
     desc: '정확하게 알고 있는 개념이에요.', steps: [], cta: null },
 ];
 function todoHTML(h, ev) {
-  const groups = TODO_GROUPS.map((g) => ({ ...g, its: ev.items.filter(g.match) })).filter((g) => g.its.length);
+  const pool = [...ev.items, ...ev.verifyWrongs]; // [확정 10/19] [10/25] 틀린 확인 문항도 할 일로 (복습 카드와 같게)
+  const groups = TODO_GROUPS.map((g) => ({ ...g, its: pool.filter(g.match) })).filter((g) => g.its.length);
   if (!groups.length) return '';
   // [index5] 순위 숫자는 '이번에 보이는 할 일' 순서대로 1 · 2 · 3… (착각이 없을 때 2순위부터 시작하던 것 정리) · 🟢는 할 일이 아니라 '유지'
   groups.filter((g) => g.key !== 'MASTERY').forEach((g, i) => { g.order = i + 1; });
@@ -2773,13 +2754,22 @@ function todoHTML(h, ev) {
  *     지금 당장 할 일의 순서는 요약 탭 '지금 해야 할 것'(TODO_GROUPS)과 같아요 — 두 탭이 서로 다른 일을 먼저 하라고 하지 않게
  *     [index5] 요약 탭과 같은 내용이던 '🧭 다음 스텝' 4단계 목록은 뺐어요 → 이 탭은 회차별 변화 · 개념별 흐름 위주
  *  → ② 회차별 변화 표 → ③ 개념별 누적 흐름(회차마다 판정 이모지)
- *  버튼은 이미 있는 흐름만 써요: 유사 문제(retry) · 복습 덱(open-review) · 기초 3문항(practice) · 다시 진단(redo) */
+ *  버튼은 이미 있는 흐름만 써요: 유사 문제(retry) · 복습 덱(open-review) · 기초 3문항(practice) · 다시 진단(redo)
+ *  [확정 10/19] '남은 착각'에는 같은 과목 집중 연습의 착각도 세요(practiceOf) · 중간 결과 회차는 표시하고 ▲▼ 비교에서 빼요 */
 /** 회차 = 같은 과목(문제은행)의 본 진단을 날짜순으로 (집중 연습 · 예시 제외). 지금 보는 결과까지만 세요 */
 function roundsOf(h) {
   const t = new Date(h.date).getTime();
   return realHistory()
     .filter((x) => x.bankId === h.bankId && (x.kind || 'main') === 'main' && Array.isArray(x.logs) && new Date(x.date).getTime() <= t)
     .sort((a, b) => new Date(a.date) - new Date(b.date));
+}
+/** [확정 10/19] 같은 과목의 집중 연습 — 회차에는 안 넣지만 거기서 나온 착각도 복습 카드 · 하단 배지에 들어가요 → '남은 착각'에 같이 세요
+ *  범위: 이 회차 다음 본 진단 전까지 (결과에서 [기초 3문항]으로 바로 푼 연습이 보통 이 회차보다 늦게 끝나요) */
+function practiceOf(h) {
+  const t = new Date(h.date).getTime();
+  const nexts = realHistory().filter((x) => x.bankId === h.bankId && (x.kind || 'main') === 'main' && Array.isArray(x.logs) && new Date(x.date).getTime() > t).map((x) => new Date(x.date).getTime());
+  const until = nexts.length ? Math.min(...nexts) : Infinity;
+  return realHistory().filter((x) => x.bankId === h.bankId && x.kind === 'practice' && Array.isArray(x.logs) && new Date(x.date).getTime() < until);
 }
 function guideHTML(h) {
   const rounds = roundsOf(h);
@@ -2789,23 +2779,29 @@ function guideHTML(h) {
   // 모든 회차에서 아직 해소하지 않은 착각 → 개념별로
   const openIll = [];
   rounds.forEach((e, ri) => reviewItems(e, evs[ri]).forEach((i) => { if (i.status === 'ILLUSION' && !(e.review[i.qid] || {}).done) openIll.push({ e, ri, i }); }));
+  practiceOf(h).forEach((e) => reviewItems(e).forEach((i) => { if (i.status === 'ILLUSION' && !(e.review[i.qid] || {}).done) openIll.push({ e, ri: -1, i }); })); // ri -1 = 집중 연습
   const byCid = {};
   openIll.forEach((x) => { (byCid[x.i.cid] = byCid[x.i.cid] || []).push(x); });
   const cids = Object.keys(byCid), K = cids.length, openN = openIll.length; // K = 착각이 남은 개념 수 · openN = 착각 문항 수 (버튼 · 숫자는 문항으로 통일, 개념 수는 보조로만)
-  const carried = openIll.some((x) => x.ri < N - 1); // 지난 회차에서 넘어온 착각이 있는지
+  const carried = openIll.some((x) => x.ri >= 0 && x.ri < N - 1); // 지난 회차에서 넘어온 착각이 있는지
+  const wide = openIll.some((x) => x.ri < N - 1); // 지난 회차 · 집중 연습의 착각이 섞였는지 → 과목 전체 덱으로 열어야 버튼 숫자와 덱이 같아요
   // 최근 회차에 남은 불안한 정답 · 기초 학습 필요
   const left = reviewItems(cur, evCur).filter((i) => !(cur.review[i.qid] || {}).done);
   const shakyN = left.filter((i) => i.status === 'INSTABILITY').length;
   const deficit = left.filter((i) => i.status === 'DEFICIT');
   const accNow = pct(evCur.accuracy), calNow = evCur.calibration, acc0 = evPrev ? pct(evPrev.accuracy) : null;
+  // [확정 10/19] 중간 결과(끝까지 풀지 않은 진단)도 회차로 세지만, 문항 수가 적어 숫자가 크게 흔들려요 → 낀 비교는 ▲▼ · 오름/내림 문장 없이 숫자만
+  const prevEarly = !!(evPrev && rounds[N - 2].early);
+  const noCmp = !!evPrev && (cur.early || prevEarly);
 
   // ① 지금 상태 한 줄 (예: "현재 2회차 풀이 결과, 정답률이 60% → 90%로 올랐어요. 하지만 여전히 …")
-  const lead = !evPrev ? `1회차 풀이 결과, 정답률 ${accNow}% · 메타인지 정확도 ${calNow}점으로 시작했어요.`
+  const lead = !evPrev ? `1회차${cur.early ? '(중간 결과)' : ''} 풀이 결과, 정답률 ${accNow}% · 메타인지 정확도 ${calNow}점으로 시작했어요.`
+    : noCmp ? `현재 ${N}회차 풀이 결과, 정답률 ${accNow}% · 메타인지 정확도 ${calNow}점이에요. ${cur.early && prevEarly ? '이번 · 지난 회차가 모두' : cur.early ? '이번 회차가' : '지난 회차가'} 끝까지 풀지 않은 중간 결과라 지난 회차와 비교하지 않았어요.`
     : accNow > acc0 ? `현재 ${N}회차 풀이 결과, 정답률이 ${acc0}% → ${accNow}%로 올랐어요.`
     : accNow < acc0 ? `현재 ${N}회차 풀이 결과, 정답률이 ${acc0}% → ${accNow}%로 내려갔어요.`
     : `현재 ${N}회차 풀이 결과, 정답률은 ${accNow}%로 지난 회차와 같아요.`;
   const next = K
-    ? `${evPrev && accNow > acc0 ? '하지만 ' : ''}${carried ? '여전히 ' : ''}<b class="text-illusion-600">‘위험한 착각’ ${openN}문항</b>(개념 ${K}개)이 남아 있어요. 복습 덱에서 <b>[유사 문제]</b>로 먼저 해소하세요.`
+    ? `${evPrev && !noCmp && accNow > acc0 ? '하지만 ' : ''}${carried ? '여전히 ' : ''}<b class="text-illusion-600">‘위험한 착각’ ${openN}문항</b>(개념 ${K}개)이 남아 있어요. 복습 덱에서 <b>[유사 문제]</b>로 먼저 해소하세요.`
     : deficit.length ? `남은 착각은 없어요. 먼저 <b>🟣 기초 학습이 필요한 개념</b>을 기초 3문항으로 다져 보세요.${shakyN ? ` 그다음 <b>🟡 불안한 정답 ${shakyN}문항</b>을 굳혀요.` : ''}`
     : shakyN ? `남은 착각은 없어요. 이제 <b>🟡 불안한 정답 ${shakyN}문항</b>을 확실한 지식으로 굳혀 보세요.`
     : '남은 착각도, 불안한 정답도 없어요. 며칠 뒤 다시 진단해 이 상태가 유지되는지 확인하세요.';
@@ -2816,7 +2812,7 @@ function guideHTML(h) {
   // 남은 착각 개념(모든 회차) — '지금 당장 할 일' 바로 아래에 개념마다 [유사 문제]로 (지난 회차에서 넘어온 착각은 요약 탭에 없는 정보예요)
   const illRows = cids.map((cid) => {
     const xs = byCid[cid], last = xs[xs.length - 1];
-    const roundTags = [...new Set(xs.map((x) => x.ri + 1))].map((r) => `<span class="chip bg-surface text-ink-600">${r}회차</span>`).join('');
+    const roundTags = [...new Set(xs.map((x) => (x.ri < 0 ? '집중 연습' : `${x.ri + 1}회차`)))].map((r) => `<span class="chip bg-surface text-ink-600">${r}</span>`).join('');
     return `
       <div class="flex flex-wrap items-center gap-x-2 gap-y-1.5 rounded-xl bg-illusion-50 px-3 py-2.5">
         <span class="min-w-0 flex-1 text-sm font-bold break-keep">🚨 ${esc(conceptOf(cur.bankId, cid).name)} <span class="text-xs font-semibold text-illusion-600">${xs.length}문항</span></span>
@@ -2827,9 +2823,9 @@ function guideHTML(h) {
 
   // ③ 개념별 누적 흐름
   const conceptRows = BANKS[cur.bankId].concepts.map((c) => {
-    const trail = evs.map((e, ri) => { const cc = e.concepts.find((x) => x.id === c.id); return `<span class="inline-flex flex-col items-center min-w-[34px]"><span class="text-base leading-none" aria-hidden="true">${cc ? STATUS[cc.status].emoji : '·'}</span><span class="mt-1 text-[10px] font-bold text-ink-500">${ri + 1}회</span></span>`; }).join('<i class="fa-solid fa-angle-right text-[9px] text-ink-300 mt-1" aria-hidden="true"></i>');
+    const trail = evs.map((e, ri) => { const cc = e.concepts.find((x) => x.id === c.id); return `<span class="inline-flex flex-col items-center min-w-[34px]"><span class="text-base leading-none" aria-hidden="true">${cc ? STATUS[cc.status].emoji : '·'}</span><span class="mt-1 text-[10px] font-bold text-ink-500">${ri + 1}회</span>${rounds[ri].early ? '<span class="text-[10px] font-bold text-unstable-700">중간</span>' : ''}</span>`; }).join('<i class="fa-solid fa-angle-right text-[9px] text-ink-300 mt-1" aria-hidden="true"></i>');
     const now = evCur.concepts.find((x) => x.id === c.id);
-    const label = evs.map((e, ri) => { const cc = e.concepts.find((x) => x.id === c.id); return `${ri + 1}회차 ${cc ? STATUS[cc.status].label : '출제 없음'}`; }).join(', ');
+    const label = evs.map((e, ri) => { const cc = e.concepts.find((x) => x.id === c.id); return `${ri + 1}회차${rounds[ri].early ? '(중간 결과)' : ''} ${cc ? STATUS[cc.status].label : '출제 없음'}`; }).join(', ');
     return `
       <li class="flex flex-wrap items-center gap-x-3 gap-y-2 py-3 border-b border-ink-100 last:border-0">
         <div class="min-w-0 flex-1"><p class="text-sm font-bold break-keep">${esc(c.name)}</p>${byCid[c.id] ? '<p class="text-[11px] font-bold text-illusion-600 mt-0.5">남은 착각 있음</p>' : ''}</div>
@@ -2840,7 +2836,8 @@ function guideHTML(h) {
 
   // 👉 지금 당장 할 일: 다음 스텝 중 가장 앞의 할 일 하나만 크게 (남은 착각 → 기초 → 불안한 정답 → 다시 진단 · 요약 탭과 같은 순서)
   // [index5] 지난 회차에서 넘어온 착각이 있으면 그 과목의 모든 진단을 한 덱으로('open-review-subject'), 아니면 이 진단의 덱('open-review') — 덱의 숫자와 버튼의 숫자가 같게
-  const revAttrs = carried ? `data-action="open-review-subject" data-subject="${esc(cur.subject)}"` : `data-action="open-review" data-id="${cur.id}"`;
+  // [확정 10/19] 집중 연습의 착각이 섞여도 과목 전체 덱으로 (wide)
+  const revAttrs = wide ? `data-action="open-review-subject" data-subject="${esc(cur.subject)}"` : `data-action="open-review" data-id="${cur.id}"`;
   const now = K
     ? { t: `남은 착각 ${openN}문항을 유사 문제로 해소하기`, s: `개념 ${K}개 · 먼저 ‘${esc(conceptOf(cur.bankId, cids[0]).name)}’부터 — 😎 100% 확신으로 맞히면 해소돼요.`, btn: `<button type="button" class="btn btn-md btn-on-color on-illusion" ${revAttrs}>🚨 착각 ${openN}문항 복습하기 ${arrow}</button>`, cls: 'bg-solid-danger' }
     : deficit.length ? { t: '🟣 기초 학습이 필요한 개념을 기초 3문항으로 다지기', s: `${esc(conceptOf(cur.bankId, deficit[0].cid).name)} — 핵심 원리부터 확인하세요.`, btn: `<button type="button" class="btn btn-md btn-on-color on-brand" data-action="practice" data-id="${cur.id}" data-cid="${deficit[0].cid}" data-lv="1">${LEVELS[1].icon} 기초 3문항 풀기 ${arrow}</button>`, cls: 'bg-solid-deficit' }
@@ -2848,7 +2845,7 @@ function guideHTML(h) {
     : { t: `${N + 1}회차 다시 진단으로 유지되는지 확인하기`, s: '며칠 간격을 두고 풀면 기억에 남았는지 더 정확히 알 수 있어요.', btn: `<button type="button" class="btn btn-md btn-on-color on-mastery" data-action="redo" data-id="${cur.id}"><i class="fa-solid fa-rotate-right text-xs" aria-hidden="true"></i>다시 진단하기</button>`, cls: 'bg-solid-mastery' };
   return `
   <section class="card p-5 sm:p-7" aria-labelledby="guide-title">
-    <div class="flex flex-wrap items-center justify-between gap-2"><h2 id="guide-title" class="section-title">📍 지금 상태</h2><span class="chip bg-brand-50 text-brand-700">${N}회차 · ${fmtDate(cur.date)}</span></div>
+    <div class="flex flex-wrap items-center justify-between gap-2"><h2 id="guide-title" class="section-title">📍 지금 상태</h2><span class="chip bg-brand-50 text-brand-700">${N}회차${cur.early ? ' · 중간 결과' : ''} · ${fmtDate(cur.date)}</span></div>
     <p class="mt-2 text-[15px] leading-relaxed text-ink-800 break-keep">${lead} ${next}</p>
     <div class="mt-4 rounded-2xl ${now.cls} text-white p-4">
       <p class="text-xs font-bold">👉 지금 당장 할 일</p>
@@ -2856,11 +2853,11 @@ function guideHTML(h) {
       <p class="mt-1 text-[13px] break-keep">${now.s}</p>
       <div class="mt-3">${now.btn}</div>
     </div>
-    ${K ? `<div class="mt-3"><p class="text-xs font-bold text-illusion-600">남은 착각 개념 · 모든 회차</p><div class="mt-1.5 space-y-1.5">${illRows}</div></div>` : ''}
+    ${K ? `<div class="mt-3"><p class="text-xs font-bold text-illusion-600">남은 착각 개념 · 모든 회차 · 집중 연습</p><div class="mt-1.5 space-y-1.5">${illRows}</div></div>` : ''}
     <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-2">
       ${stat('풀이 회차', `${N}회차`)}
-      ${stat('정답률', `${accNow}%${delta(evPrev ? accNow - acc0 : null, '%p')}`)}
-      ${stat('메타인지 정확도', `${calNow}점${delta(evPrev ? calNow - evPrev.calibration : null, '점')}`)}
+      ${stat('정답률', `${accNow}%${delta(evPrev && !noCmp ? accNow - acc0 : null, '%p')}`)}
+      ${stat('메타인지 정확도', `${calNow}점${delta(evPrev && !noCmp ? calNow - evPrev.calibration : null, '점')}`)}
       ${stat('남은 착각', `${openN}문항`)}
     </div>
     <!-- [index5] '🧭 다음 스텝' 4단계 목록은 요약 탭 '🎯 지금 해야 할 것'과 같은 내용이라 뺐어요 → 이 탭은 회차별 변화 · 개념별 흐름 위주
@@ -2873,15 +2870,15 @@ ${N === 1 ? `  <!-- [index5] 첫 진단(1회차)에는 비교할 회차가 없�
     <p class="mt-1 text-sm text-ink-500 break-keep">같은 과목을 다시 진단하면 회차별 정답률 · 확실한 지식 변화와, 개념별 🚨 → 🟡 → 🟢 흐름이 여기에 쌓여요.</p>
   </section>` : `  <section class="card p-5 sm:p-7" aria-labelledby="rounds-title">
     <h2 id="rounds-title" class="section-title">📈 회차별 변화</h2>
-    <p class="mt-1 text-sm text-ink-500 break-keep">같은 과목의 본 진단을 날짜순으로 센 회차예요. 집중 연습은 넣지 않아요.</p>
+    <p class="mt-1 text-sm text-ink-500 break-keep">같은 과목의 본 진단을 날짜순으로 센 회차예요. 집중 연습은 넣지 않아요. 끝까지 풀지 않은 중간 결과는 회차로 세되 표시해 두고, ▲▼ 비교에서는 빼요.</p>
     <div class="mt-4 overflow-x-auto rounded-2xl border border-ink-200">
       <table class="w-full min-w-[520px] text-sm">
         <thead class="bg-ink-50 text-xs text-ink-500"><tr>${['회차', '날짜', '정답률', '메타인지', '착각 남음/발견', '확실한 지식'].map((t) => `<th scope="col" class="px-3 py-2.5 text-left font-bold whitespace-nowrap">${t}</th>`).join('')}</tr></thead>
         <tbody>${rounds.map((e, ri) => {
-          const v = evs[ri], pv = evs[ri - 1];
+          const v = evs[ri], pv = ri && !e.early && !rounds[ri - 1].early ? evs[ri - 1] : null; // [확정 10/19] 중간 결과가 낀 비교는 숫자만
           const openN = openIll.filter((x) => x.ri === ri).length;
           return `<tr class="border-t border-ink-100 ${ri === N - 1 ? 'bg-brand-50/60 font-bold' : ''}">
-            <td class="px-3 py-2.5 whitespace-nowrap">${ri + 1}회차${ri === N - 1 ? ' <span class="chip !py-0 bg-solid-brand text-white">지금</span>' : ''}</td>
+            <td class="px-3 py-2.5 whitespace-nowrap">${ri + 1}회차${e.early ? ` <span class="chip !py-0 bg-unstable-50 text-unstable-700">중간 결과 · ${v.items.length}문항</span>` : ''}${ri === N - 1 ? ' <span class="chip !py-0 bg-solid-brand text-white">지금</span>' : ''}</td>
             <td class="px-3 py-2.5 whitespace-nowrap text-ink-600">${fmtDate(e.date)}</td>
             <td class="px-3 py-2.5 whitespace-nowrap tnum">${pct(v.accuracy)}%${delta(pv ? pct(v.accuracy) - pct(pv.accuracy) : null, '%p')}</td>
             <td class="px-3 py-2.5 whitespace-nowrap tnum">${v.calibration}점${delta(pv ? v.calibration - pv.calibration : null, '점')}</td>
@@ -3136,7 +3133,7 @@ function matrixHTML(ev) {
   return `
   <section class="card p-5 sm:p-7" aria-label="2×2 메타인지 사분면">
     <h2 class="section-title">2×2 메타인지 사분면</h2>
-    <p class="mt-1 text-sm text-ink-500 break-keep">내 확신도 × 실제 결과로 ${ev.items.length}문항을 나눴어요.${ev.items.some((i) => i.isVerify) ? ` <span class="text-ink-600">(너무 빨리 맞힌 문제를 확인하려고 더 낸 <b>요행 방지 확인 문항 ${ev.items.filter((i) => i.isVerify).length}개</b> 포함)</span>` : ''}${dup ? ` <span class="text-ink-600">같은 문제를 다시 푼 <b>${dup}문항</b>도 따로 셌어요 — 복습 카드는 같은 문제를 한 장으로 합쳐서 숫자가 조금 적을 수 있어요.</span>` : ''} 개념별로 무엇을 할지는 아래 <b class="text-ink-700">🎯 지금 해야 할 것</b>에 있어요.</p>
+    <p class="mt-1 text-sm text-ink-500 break-keep">내 확신도 × 실제 결과로 ${ev.items.length}문항을 나눴어요.${ev.all.length > ev.items.length ? ` <span class="text-ink-600">(너무 빨리 맞힌 문제를 확인하려고 더 낸 <b>요행 방지 확인 문항 ${ev.all.length - ev.items.length}개</b>는 앞 문제의 실력 확인용이라 빼고 셌어요${ev.verifyWrongs.length ? ` · 그중 틀린 ${ev.verifyWrongs.length}문항은 복습 카드(착각 · 기초 학습 필요)로 복습 덱에 넣었어요` : ''})</span>` : ''}${dup ? ` <span class="text-ink-600">같은 문제를 다시 푼 <b>${dup}문항</b>도 따로 셌어요 — 복습 카드는 같은 문제를 한 장으로 합쳐서 숫자가 조금 적을 수 있어요.</span>` : ''} 개념별로 무엇을 할지는 아래 <b class="text-ink-700">🎯 지금 해야 할 것</b>에 있어요.</p>
     <div class="mt-4 grid grid-cols-2 gap-2 text-center text-xs font-bold text-ink-500" aria-hidden="true"><span>오답 ✗</span><span>정답 ✓</span></div>
     <div class="mt-2 grid grid-cols-2 gap-2" role="list">${['ILLUSION', 'MASTERY', 'DEFICIT', 'INSTABILITY'].map(quad).join('')}</div>
     <p class="mt-3 text-xs text-ink-500 leading-relaxed break-keep">* 오답은 70% 이상 확신했을 때 ‘${STATUS.ILLUSION.label}’, 정답은 100% 확신에 번복 · 지연 · 성급함이 없을 때만 ‘${STATUS.MASTERY.label}’으로 판정해요.</p>
@@ -3248,11 +3245,11 @@ function levelChartHTML(st) {
 
 /** 문항별 흐름: (위) 출제 단계 × 판정 점 그래프, (아래) 권장 시간 대비 풀이 시간 막대 — 같은 x축을 쓰는 두 개의 작은 차트 */
 function flowChartHTML(h, ev) {
-  const its = ev.items, n = its.length;
+  const its = ev.all, n = its.length; // [확정 10/19] 실제로 푼 순서 그대로 (확인 문항은 툴팁에 '집계 제외')
   const cols = `grid-template-columns:repeat(${n}, minmax(0,1fr))`;
   const showLabel = (i) => n <= 12 || i === 0 || (i + 1) % 5 === 0 || i === n - 1;
   const tipOf = (i) => [
-    `Q${i.idx + 1} · ${STATUS[i.status].emoji} ${STATUS[i.status].label}`,
+    `Q${i.idx + 1} · ${STATUS[i.status].emoji} ${STATUS[i.status].label}${i.isVerify ? ' · 확인 문항(집계 제외)' : ''}`,
     `${conceptOf(h.bankId, i.cid).name} · ${LEVELS[i.lv].name}`,
     `${i.correct ? '정답' : '오답'} · ${CONF[i.conf].emoji} ${CONF[i.conf].pct} · 번복 ${i.hesitation}회`,
     `${(i.ms / 1000).toFixed(1)}초 / 권장 ${i.stdSec}초 (${pct(i.ratio)}%)`,
@@ -3327,12 +3324,12 @@ function conceptsHTML(h, ev) {
  *  - 펼침 상태는 data-row 키로 RT.openRows에 기억 → '전체 보기'로 다시 그려도 열린 카드가 유지돼요
  */
 function logHTML(h, ev) {
-  const rows = RT.logOpen ? ev.items : ev.items.slice(0, 10);
+  const rows = RT.logOpen ? ev.all : ev.all.slice(0, 10); // [확정 10/19] 기록은 확인 문항까지 실제로 푼 그대로 ('집계 제외' 표시)
   const optText = (q, k) => (q && k != null && q.o[k] != null ? q.o[k] : null);
   const item = (i) => {
     const q = getQ(i.qid), m = STATUS[i.status], key = `log|${h.id}|${i.idx}`;
     const mine = optText(q, i.chosen), answer = optText(q, q && q.a);
-    const tags = [i.isVerify ? '확인 문항' : '', i.repeat ? '반복 출제' : '', i.tabOut ? '화면 이탈' : ''].filter(Boolean);
+    const tags = [i.isVerify ? '확인 문항 · 집계 제외' : '', i.repeat ? '반복 출제' : '', i.tabOut ? '화면 이탈' : ''].filter(Boolean);
     const fact = (label, value) => `<div class="rounded-xl bg-ink-50 px-3 py-2"><dt class="text-[11px] font-bold text-ink-500">${label}</dt><dd class="mt-0.5 text-sm font-bold tnum">${value}</dd></div>`;
     return `
     <details class="group rounded-2xl ring-1 ring-ink-100 open:ring-ink-200 open:shadow-card transition" data-row="${key}" ${RT.openRows.has(key) ? 'open' : ''}>
@@ -3378,7 +3375,7 @@ function logHTML(h, ev) {
     <h2 class="section-title">문항별 행동 로그</h2>
     <p class="mt-1 text-sm text-ink-500 break-keep">풀이 중에는 보여 주지 않았던 기록이에요. 문항을 누르면 지문과 내 답 · 실제 정답을 함께 볼 수 있어요.</p>
     <div class="mt-4 space-y-2">${rows.map(item).join('')}</div>
-    ${ev.items.length > 10 ? `<button type="button" class="mt-3 w-full btn btn-md btn-gray" data-action="toggle-log">${RT.logOpen ? '접기' : `전체 ${ev.items.length}문항 보기`}</button>` : ''}
+    ${ev.all.length > 10 ? `<button type="button" class="mt-3 w-full btn btn-md btn-gray" data-action="toggle-log">${RT.logOpen ? '접기' : `전체 ${ev.all.length}문항 보기`}</button>` : ''}
   </section>`;
 }
 
@@ -3975,36 +3972,15 @@ const RENDER = { landing: renderLanding, home: renderHome, library: renderLibrar
 /* =====================================================================
  * 9) 사용자 흐름 (고르기 → 풀이 → 결과 → 복습)
  * ===================================================================== */
-function isDark() {
-  const t = S.prefs.theme;
-  return t === 'dark' || (t === 'system' && !!window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
-}
 function applyPrefs() {
-  const root = document.documentElement, t = S.prefs.theme;
-  if (t === 'system') root.removeAttribute('data-theme'); else root.setAttribute('data-theme', t);
-  $('#meta-theme').setAttribute('content', isDark() ? '#121317' : '#F2F4F6');
   syncToggles();
 }
 /* ---------- 계정 · 설정 바텀 시트 (퀵 세팅 통합) ----------
  * 핵심 로직
- *  - 헤더에는 로고 · 메뉴(홈 · 기록 · 복습) · [👤 계정·설정] 버튼만 남기고, 테마 · 효과음 · 1분 가이드를 이 시트로 모음
- *  - 테마: 트랙은 라이트/다크와 무관하게 아주 어두운 색 + 인셋 섀도우로 고정, 활성 썸은 흰색으로 띄우고
- *          아이콘은 진한 색(해: 앰버 · 달: 남색), 비활성 아이콘은 흰색 30%로 트랙에 묻히게
+ *  - 헤더에는 로고 · 메뉴(홈 · 기록 · 복습) · [👤 계정·설정] 버튼만 남기고, 효과음 · 1분 가이드를 이 시트로 모음
  *  - 스위치를 눌러도 시트를 다시 그리지 않고 syncToggles()가 transform · aria만 바꿔서 썸이 미끄러지는 애니메이션이 유지됨
  */
 function syncToggles() {
-  const d = isDark(), sys = S.prefs.theme === 'system';
-  const seg = $('#theme-seg');
-  if (seg) {
-    $('#theme-thumb').style.transform = d ? 'translateX(100%)' : 'translateX(0)';
-    seg.querySelectorAll('[data-k]').forEach((b) => {
-      const on = (b.dataset.k === 'dark') === d;
-      b.setAttribute('aria-checked', String(on));
-      b.classList.toggle('is-on', on);
-    });
-    $('#theme-sub').textContent = `${d ? '다크' : '라이트'} 모드${sys ? ' · 기기 설정을 따르는 중' : ''}`;
-    $('#theme-sys').classList.toggle('hidden', sys);
-  }
   const sw = $('#sound-switch');
   if (sw) {
     const on = !!S.prefs.sound;
@@ -4042,10 +4018,9 @@ function metricsSummary() {
 
 /* [변경] 계정 · 설정: 로그인 상태면 이름 · 이메일 · 로그아웃, 게스트면 회원가입 · 로그인 버튼 (계정 정보도 기록도 이 기기에만 저장) */
 function accountHTML() {
-  const u = S.user || {}, d = isDark(), sys = S.prefs.theme === 'system', on = !!S.prefs.sound;
+  const u = S.user || {}, on = !!S.prefs.sound;
   const n = realHistory().length;
   const ic = (cls, id = '') => `<span class="w-10 h-10 shrink-0 rounded-xl bg-surface text-ink-600 grid place-items-center shadow-sm" aria-hidden="true"><i ${id ? `id="${id}"` : ''} class="${cls}"></i></span>`;
-  const themeBtn = (k, icon, label) => `<button type="button" role="radio" data-action="set-theme-seg" data-k="${k}" aria-checked="${(k === 'dark') === d}" aria-label="${label}" title="${label}" class="tt-btn ${(k === 'dark') === d ? 'is-on' : ''} relative z-10 w-11 h-9 grid place-items-center rounded-full"><i class="fa-solid ${icon} text-[16px]" aria-hidden="true"></i></button>`;
   return `
     <div class="flex items-center gap-3">
       <span class="w-12 h-12 rounded-full bg-brand-500 text-white grid place-items-center text-lg font-extrabold" aria-hidden="true">${u.guest || !u.nickname ? '<i class="fa-solid fa-user text-base"></i>' : esc(u.nickname.charAt(0))}</span>
@@ -4053,23 +4028,13 @@ function accountHTML() {
     </div>
 
     <!-- [index5] 직업군은 가입 때만 고를 수 있었어요 → 여기서 언제든 바꿔요 (S.user.persona · AI 맞춤 출제에 사용) -->
+    <!-- [10/25] 안 고르면 '선택 안 함'(대학생 수준) · 선택한 칩을 다시 누르면 해제 · 출제 수준이 바뀔 때만 진단 삭제 -->
     <p class="mt-5 label">직업군 <span class="font-medium text-ink-500">· 나에게 맞는 문제를 내는 데 써요</span></p>
     <div class="grid grid-cols-2 gap-2" role="group" aria-label="직업군">${Object.entries(PERSONAS).map(([k, v]) => `<button type="button" class="${personaChipCls(u.persona === k)}" data-action="set-persona" data-k="${k}" aria-pressed="${u.persona === k}"><span aria-hidden="true">${v.icon}</span>${v.label}</button>`).join('')}</div>
+    <p class="mt-1.5 text-xs text-ink-500 leading-relaxed break-keep">안 고르면 대학생 수준으로 문제를 내요. 출제 수준이 바뀌면(대학생 ↔ 자격증) 그동안 푼 진단은 삭제돼요. 내 서재 · 설정은 남아요.</p>
 
     <p class="mt-5 label">빠른 설정</p>
     <div class="rounded-2xl bg-ink-50 divide-y divide-ink-200/70">
-      <div class="flex items-center gap-3 p-3.5">
-        ${ic('fa-solid fa-circle-half-stroke')}
-        <div class="min-w-0 flex-1">
-          <p class="text-[15px] font-bold">화면 테마</p>
-          <p id="theme-sub" class="text-xs text-ink-500">${d ? '다크' : '라이트'} 모드${sys ? ' · 기기 설정을 따르는 중' : ''}</p>
-          <button type="button" id="theme-sys" class="${sys ? 'hidden' : ''} mt-0.5 text-xs font-bold text-brand-600 underline underline-offset-2" data-action="set-theme" data-k="system">기기 설정 따르기</button>
-        </div>
-        <div id="theme-seg" role="radiogroup" aria-label="화면 테마" class="theme-track relative shrink-0 flex p-1 rounded-full">
-          <span id="theme-thumb" class="theme-thumb absolute top-1 left-1 w-11 h-9 rounded-full" style="transform:translateX(${d ? '100%' : '0'})" aria-hidden="true"></span>
-          ${themeBtn('light', 'fa-sun', '라이트 모드')}${themeBtn('dark', 'fa-moon', '다크 모드')}
-        </div>
-      </div>
       <div class="flex items-center gap-3 p-3.5">
         ${ic(`fa-solid ${on ? 'fa-volume-high' : 'fa-volume-xmark'}`, 'sound-ic')}
         <div class="min-w-0 flex-1"><p class="text-[15px] font-bold">효과음</p><p id="sound-sub" class="text-xs text-ink-500">${on ? '클릭 · 정답 · 오답 · 팡파르 켜짐' : '모든 효과음 꺼짐'}</p></div>
@@ -4093,8 +4058,12 @@ function accountHTML() {
       <dl class="px-4 pb-4 grid gap-2">${metricsSummary().map(([k, v]) => `<div class="flex items-center justify-between gap-3 text-sm"><dt class="text-ink-600">${k}</dt><dd class="font-bold tnum text-right">${v}</dd></div>`).join('')}</dl>
     </details>` : ''}
     <!-- [index5] 되돌릴 수 없는 [모든 기록 초기화]는 눈에 잘 띄는 하단 고정 줄에 두지 않고 본문 끝에 (실수로 누르지 않게) -->
-    <div class="mt-3 grid"><button type="button" class="btn btn-md text-illusion-600 hover:bg-illusion-50" data-action="ask-reset">모든 기록 초기화</button></div>`;
+    <div class="mt-3 grid"><button type="button" class="btn btn-md text-illusion-600 hover:bg-illusion-50" data-action="ask-reset">모든 기록 초기화</button></div>
+    ${isMember() ? `<!-- [index5] 회원 탈퇴(⑰): 가입한 계정으로 로그인했을 때만 · [모든 기록 초기화]보다 덜 눈에 띄게 작은 회색 글자 -->
+    <p class="text-center"><button type="button" class="py-3 px-3 text-[13px] font-semibold text-ink-500 hover:text-illusion-600" data-action="ask-withdraw">회원 탈퇴</button></p>` : ''}`;
 }
+/** [index5] 가입한 계정으로 로그인했는지 (게스트 · 계정 목록에 없는 사용자는 아님) */
+const isMember = () => !!(S.user && !S.user.guest && S.user.email && S.accounts[S.user.email.toLowerCase()]);
 /** [index5] 계정 시트 하단 고정 줄 — 게스트: [회원가입] [로그인] · 로그인 상태: [로그아웃]
  *  예전엔 본문 맨 끝이라 375×812에서 113px 스크롤해야 보였어요. 로그인 상태는 바뀌면 시트를 새로 열므로 푸터는 한 번만 그려요 */
 function accountFooterHTML() {
@@ -4173,7 +4142,7 @@ function confirmReplaceThen(fn) {
     RT.pendingStart = fn;
     confirmSheet({
       title: '진행 중인 진단이 있어요',
-      desc: `${esc(s.subject)} · ${s.logs.length}/${s.total}문항을 풀던 중이에요. 새로 시작하면 이전 진단은 사라져요.`,
+      desc: `${esc(s.subject)} · ${mainCount(s)}/${s.total}문항을 풀던 중이에요. 새로 시작하면 이전 진단은 사라져요.`,
       ok: '새로 시작', okAction: 'confirm-replace', cancel: '이어서 풀기', cancelAction: 'resume', danger: false,
     });
     return;
@@ -4234,7 +4203,7 @@ async function prepareDiagnosis(args) {
   const p = args.plan;
   const run = { mode: p ? p.mode : st.mode, fixedLevel: p ? p.level : st.fixedLevel, count: p ? p.count : st.count };
   const custom = {
-    persona: (S.user && S.user.persona) || null,
+    persona: levelOf(S.user && S.user.persona), // [10/25] 직업군이 없으면(선택 안 함) null 말고 UNIVERSITY로 바꿔 보내요
     customPrompt: String((p ? p.prompt : st.customPrompt) || '').trim().slice(0, PROMPT_MAX),
   };
   try {
@@ -4325,9 +4294,10 @@ function branchMsg(s, cur, log, branch) {
     return '재도전 성공! 복습 카드가 해소 처리돼요.';
   }
   const parts = [];
-  if (cur.isVerify) parts.push(log.correct ? '확인 문항 통과 — 앞 문제도 실력으로 인정했어요.' : '확인 문항 실패 — 앞 문제의 정답은 요행으로 기록돼요.');
+  // [확정 10/19] 확인 문항 통과 = 정답 + 😎 100% 확신 (final_IO p.15) — 70% · 30%로 맞히면 앞 문제는 요행으로 기록
+  if (cur.isVerify) parts.push(log.correct && log.conf === 'HIGH' ? '확인 문항 통과 — 앞 문제도 실력으로 인정했어요.' : log.correct ? '확인 문항은 맞혔지만 😎 100% 확신이 아니라서 앞 문제의 정답은 요행으로 기록돼요.' : '확인 문항 실패 — 앞 문제의 정답은 요행으로 기록돼요.');
   if (log.correct && log.conf === 'LOW') parts.push('🍀 운이 좋았네요! 복습 덱에서 유사 문제로 진짜 실력인지 다시 확인해 봐요.');
-  const last = s.logs.length >= s.total && !s.pendingVerify;
+  const last = mainCount(s) >= s.total && !s.pendingVerify;
   if (last) {
     parts.push('모든 문항을 풀었어요. 결과를 확인해 보세요.');
   } else if (s.mode === 'ADAPTIVE' && branch) {
@@ -4411,7 +4381,7 @@ function applyGrading(s, cur, q, { chosen, conf, ms, res }) {
   }
   if (cur.isVerify && s.pendingVerify) {
     const src = s.logs[s.pendingVerify.logIndex];
-    if (src) { src.verifyResult = correct; src.verifyPending = false; }
+    if (src) { src.verifyResult = correct && conf === 'HIGH'; src.verifyPending = false; } // [확정 10/19] 통과 = 정답 + 😎 100%
     s.pendingVerify = null;
   }
   // 적응형 분기: 서버가 돌려준 다음 난이도(nextLevel)를 적용
@@ -4469,8 +4439,9 @@ function finishSession(early) {
     id: uid('h'), date: new Date().toISOString(), bankId: s.bankId, subject: s.subject, topic: s.topic, domain: s.domain,
     subjectName: s.subjectName || '', topicName: s.topicName || '',
     libUid: s.libUid || null, // [index5] 내 서재 단원으로 푼 진단
+    persona: personaOf(s.persona), // [확정 10/19] 이 진단을 낸 직업군 (선택 안 함 = null · 대학생 수준으로 봐요)
     kind: s.kind, mode: s.mode, fixedLevel: s.fixedLevel, total: s.total, modeLabel: modeLabel(s),
-    early: !!early || s.logs.length < s.total,
+    early: !!early || mainCount(s) < s.total,
     logs: s.logs.map(({ verifyPending, ...rest }) => rest),
     review: {},
   };
@@ -4557,7 +4528,9 @@ function regenRetry() {
   toast('새로운 유사 문제를 불러왔어요');
 }
 
-/** [변경] 재도전 해소 조건: 착각 문항은 100% 확신 정답, 그 밖의 문항은 70% 이상 확신 정답 */
+/** [변경] 재도전 해소 조건: 착각 문항은 100% 확신 정답, 그 밖의 문항은 70% 이상 확신 정답
+ *  [10/24] 유사 문제 풀이는 복습 카드를 새로 만들지 않아요 — 진단 기록(S.history)에 넣지 않고, 원래 카드(h.review[원 문항])에 재도전 결과만 남겨요.
+ *          그래서 유사 문제를 😎 100% 확신으로 틀려도 새 착각 카드는 생기지 않아요 (확인 문항은 달라요: reviewItems의 verifyWrongs) */
 function finishRetry() {
   const s = S.session, log = s.logs[0], h = findEntry(s.retryOf.entryId);
   const needHigh = retryNeedsHigh(s);
@@ -4716,7 +4689,7 @@ function openExitSheet() {
       </div>`, { onClose: resumeTimer });
     return;
   }
-  const n = s.logs.length;
+  const n = mainCount(s); // [확정 10/19] 확인 문항은 빼고 센 본 문항 수
   // [index5] 중간 결과는 EARLY_RESULT_MIN문항 이상 풀었을 때만 — 1~2문항짜리 결과는 판정 의미가 거의 없는데 기록 · 내 서재에 남았어요
   openSheet(`
     <h3 class="text-[19px] font-extrabold">진단을 잠시 멈출까요?</h3>
@@ -4729,9 +4702,47 @@ function openExitSheet() {
     </div>`, { onClose: resumeTimer });
 }
 
-/* ---------- 로그인 · 회원가입 (데모: 서버 없이 이름 · 이메일만 이 브라우저에 보관 · [index5] 비밀번호 칸 없음) ----------
- *  [index5] 회원가입에 직업군(페르소나) 칩 그룹: 누르면 숨은 입력(#f-persona)에 키를 담고 → 제출 때 S.user.persona로 저장 (선택 사항)
- *           옵션은 핵심 타깃 두 가지(PERSONAS: 대학생/대학원생 · 자격증/공시생) */
+/* ---------- [확정 10/19] 직업군 바꾸기 ----------
+ *  [10/25] 출제 수준(levelOf)이 바뀔 때만 지워요 — 선택 안 함 · 대학생 = 대학생 수준, 자격증 = 자격증 수준
+ *          대학생 ↔ 선택 안 함은 같은 수준이라 진단을 안 지우고 확인 창도 없어요 · 자격증으로 바꾸거나 자격증에서 바꿀 때만 지워요 (풀던 · 준비된 진단도 같은 기준)
+ *          직업군 없이 푼 예전 기록은 대학생 수준 기록으로 봐요
+ *  남기는 것: 내 서재 · 설정 · 계정 (모든 기록 초기화보다 더 지우면 안 돼요)
+ *  지울 게 있으면 확인 창을 먼저 띄우고, 없으면 예전처럼 바로 바꿔요 */
+function personaDrop(k) {
+  const off = (p) => levelOf(p) !== levelOf(k); // [10/25] 같은 출제 수준이면 남겨요
+  const ids = new Set(realHistory().filter((h) => off(h.persona)).map((h) => h.id));
+  // 재도전 세션은 기록을 만들지 않으니 직업군이 아니라 '고치려던 진단이 지워지는지'로 봐요
+  const stale = (x) => !!x && (x.kind === 'retry' ? !!x.retryOf && ids.has(x.retryOf.entryId) : off(x.persona));
+  return { ids, n: ids.size, stale, session: stale(S.session) || stale(S.parked) };
+}
+function dropPersonaRecords(k) {
+  const d = personaDrop(k);
+  S.history = S.history.filter((h) => !d.ids.has(h.id));
+  if (d.stale(S.session)) { stopTicker(); S.session = null; }
+  if (d.stale(S.parked)) S.parked = null;
+  if (!S.session && S.parked) { S.session = S.parked; S.parked = null; } // 재도전만 지워졌으면 보관해 둔 진단을 되돌려요
+  if (d.ids.has(S.resultId)) S.resultId = null;
+  if (d.ids.has(S.reviewId)) S.reviewId = null;
+  d.ids.forEach((id) => { delete S.celebrated[id]; });
+  RT.reviewIndex = 0; RT.flipped = false; RT.openRows.clear(); RT.reviewScope = null;
+  return d;
+}
+function applyPersona(k, o = {}) {
+  if (k) S.user.persona = k; else delete S.user.persona;
+  const acc = S.user.email && S.accounts[S.user.email.toLowerCase()]; // [index5] 가입 계정에도 남겨 다음 로그인 때 그대로
+  if (acc) { if (k) acc.persona = k; else delete acc.persona; }
+  save();
+  document.querySelectorAll('[data-action="set-persona"]').forEach((b) => { const on = b.dataset.k === k; b.className = personaChipCls(on); b.setAttribute('aria-pressed', on); });
+  if (!o.quiet) toast(k ? `직업군: ${PERSONAS[k].label}` : '직업군 선택을 해제했어요');
+}
+
+/* ---------- 로그인 · 회원가입 (데모: 서버 없이 이 브라우저에 보관) ----------
+ *  [index5] 비밀번호를 다시 받아요 — 원문은 저장하지 않고 PBKDF2(SHA-256) 해시 + 솔트만 S.accounts[이메일]에 보관
+ *           로그인은 가입한 이메일의 해시와 비교 · 계정 목록은 로그아웃 · 기록 초기화 뒤에도 남아 다시 로그인할 수 있어요
+ *           (실서비스에서는 서버가 비밀번호를 확인하고, 브라우저에는 로그인 상태만 남아요)
+ *  [index5] 회원가입에 직업군(페르소나) 칩 그룹: 누르면 숨은 입력(#f-persona)에 키를 담고 → 제출 때 S.user.persona로 저장
+ *           옵션은 핵심 타깃 두 가지(PERSONAS: 대학생 · 자격증)
+ *  [10/25]  처음엔 아무것도 안 골라져 있고(안 고르면 선택 안 함 = 대학생 수준) 선택한 칩을 다시 누르면 해제돼요 */
 const personaChipCls = (on) => `min-h-[48px] px-2 py-2 rounded-xl text-[13px] font-bold leading-snug text-center flex items-center justify-center gap-1.5 break-keep transition ${on ? 'bg-brand-50 text-brand-700 ring-2 ring-brand-500' : 'bg-ink-50 text-ink-700 ring-1 ring-ink-200 hover:ring-brand-300'}`;
 function setPersonaPick(k) {
   const f = $('#f-persona');
@@ -4739,22 +4750,38 @@ function setPersonaPick(k) {
   f.value = PERSONAS[k] ? k : '';
   document.querySelectorAll('[data-action="pick-persona"]').forEach((b) => { const on = b.dataset.k === f.value; b.className = personaChipCls(on); b.setAttribute('aria-pressed', on); });
 }
+const PW_MIN = 8; // [index5] 비밀번호 최소 길이 (영문 + 숫자 포함)
+const PW_ITER = 150000;
+const toHex = (buf) => [...new Uint8Array(buf)].map((b) => b.toString(16).padStart(2, '0')).join('');
+async function hashPassword(pw, saltHex) {
+  const enc = new TextEncoder();
+  const salt = new Uint8Array(saltHex.match(/../g).map((h) => parseInt(h, 16)));
+  const key = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveBits']);
+  return toHex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', salt, iterations: PW_ITER }, key, 256));
+}
+const pwFieldHTML = (reg) => `<div>
+        <label class="label" for="f-pw">비밀번호${reg ? ` <span class="font-medium text-ink-500">(${PW_MIN}자 이상 · 영문 + 숫자)</span>` : ''}</label>
+        <div class="relative">
+          <input id="f-pw" name="password" type="password" class="field !pr-16" maxlength="64" placeholder="비밀번호"
+            autocomplete="${reg ? 'new-password' : 'current-password'}">
+          <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 h-11 px-3 text-[13px] font-bold text-ink-500" data-action="toggle-pw" aria-controls="f-pw" aria-pressed="false">보기</button>
+        </div>
+      </div>`;
 function openAuthSheet(tab) {
   const reg = tab === 'register';
   openSheet(`
     <div class="seg grid-cols-2" role="tablist" aria-label="로그인 · 회원가입">${[['login', '로그인'], ['register', '회원가입']].map(([k, v]) => `<button type="button" role="tab" class="seg-btn" data-action="open-auth" data-tab="${k}" aria-pressed="${tab === k}" aria-selected="${tab === k}">${v}</button>`).join('')}</div>
     <h3 class="mt-5 text-[20px] font-extrabold">${reg ? '30초 만에 시작해요' : '다시 오셨군요'}</h3>
-    <p class="mt-1 text-sm text-ink-500 break-keep">${reg ? '이름과 이메일만 있으면 돼요.' : '이메일로 로그인하고 학습을 이어가세요.'}</p>
+    <p class="mt-1 text-sm text-ink-500 break-keep">${reg ? '이름 · 이메일 · 비밀번호만 있으면 돼요.' : '이메일과 비밀번호로 로그인하고 학습을 이어가세요.'}</p>
     <form id="auth-form" data-tab="${reg ? 'register' : 'login'}" class="mt-5 space-y-3.5" novalidate>
       ${reg ? '<div><label class="label" for="f-name">이름 또는 닉네임</label><input id="f-name" name="name" class="field" maxlength="20" placeholder="홍길동" autocomplete="nickname"></div>' : ''}
       ${reg ? `<div>
-        <p class="label" id="persona-label">직업군 <span class="font-medium text-ink-500">(선택 · 나에게 맞는 문제를 내는 데 써요)</span></p>
+        <p class="label" id="persona-label">직업군 <span class="font-medium text-ink-500">(선택 · 안 고르면 대학생 수준으로 내요)</span></p>
         <input type="hidden" id="f-persona" name="persona" value="">
         <div class="grid grid-cols-2 gap-2" role="group" aria-labelledby="persona-label">${Object.entries(PERSONAS).map(([k, v]) => `<button type="button" class="${personaChipCls(false)}" data-action="pick-persona" data-k="${k}" aria-pressed="false"><span aria-hidden="true">${v.icon}</span>${v.label}</button>`).join('')}</div>
       </div>` : ''}
       <div><label class="label" for="f-email">이메일</label><input id="f-email" name="email" type="email" class="field" placeholder="student@university.ac.kr" autocomplete="email" inputmode="email"></div>
-      <!-- [index5] 비밀번호 칸은 뺐어요 — '이름과 이메일만 있으면 돼요' · '이메일로 로그인' 문구와 어긋났고, 데모라 저장도 하지 않았어요
-           (실서비스에서는 이 자리에 비밀번호 또는 간편 로그인이 들어가요) -->
+      ${pwFieldHTML(reg)}
       <p id="auth-error" class="hidden text-sm font-semibold text-illusion-600" role="alert"></p>
       <button type="submit" class="btn btn-lg btn-primary w-full">${reg ? '가입하고 시작하기' : '로그인'}</button>
     </form>
@@ -4764,13 +4791,15 @@ function openAuthSheet(tab) {
       ${DEV_UI ? '<button type="button" class="py-3.5 -my-3.5 text-brand-600" data-action="auth-demo"><i class="fa-solid fa-wand-magic-sparkles mr-1" aria-hidden="true"></i>데모 계정 채우기</button>' : '<span></span>'}
       <button type="button" class="py-3.5 -my-3.5 text-ink-500" data-action="guest">로그인 없이 시작 <i class="fa-solid fa-chevron-right text-[10px]" aria-hidden="true"></i></button>
     </div>
-    <p class="mt-4 text-xs text-ink-500 leading-relaxed break-keep">데모 버전이라 서버로 전송되지 않아요. 비밀번호 없이 이름 · 이메일만 이 브라우저에 보관해요. 다른 기기와의 기록 동기화는 준비 중이에요.</p>`, { name: 'auth' });
+    <p class="mt-4 text-xs text-ink-500 leading-relaxed break-keep">데모 버전이라 서버로 전송되지 않아요. 비밀번호는 그대로 저장하지 않고 암호화(해시)해서 이 브라우저에만 보관해요. 다른 곳에서 쓰는 비밀번호는 넣지 마세요. 다른 기기와의 기록 동기화는 준비 중이에요.</p>`, { name: 'auth' });
 }
-function handleAuth(form) {
+async function handleAuth(form) {
+  if (RT.authBusy) return;
   const fd = new FormData(form);
   const reg = form.dataset.tab === 'register';
   const email = String(fd.get('email') || '').trim();
   const name = String(fd.get('name') || '').trim();
+  const pw = String(fd.get('password') || '');
   const err = $('#auth-error');
   // [index5] 오류 문구만 띄우면 어느 칸 때문인지 찾아야 해서 → 잘못된 칸을 빨갛게(aria-invalid) 표시 · 문구와 연결(aria-describedby) · 흔들고 포커스
   //          (먼저 걸린 칸 하나만 · 그 칸을 고치기 시작하면 표시와 문구가 사라져요: 아래 input 핸들러)
@@ -4782,13 +4811,97 @@ function handleAuth(form) {
   };
   if (reg && !name) return fail('이름 또는 닉네임을 입력해 주세요.', 'f-name');
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('올바른 이메일 형식을 입력해 주세요.', 'f-email');
+  if (!pw) return fail('비밀번호를 입력해 주세요.', 'f-pw');
+  const key = email.toLowerCase();
+  const acc = S.accounts[key];
+  if (reg) {
+    if (pw.length < PW_MIN || !/[A-Za-z]/.test(pw) || !/\d/.test(pw)) return fail(`비밀번호는 ${PW_MIN}자 이상, 영문과 숫자를 함께 넣어 주세요.`, 'f-pw');
+    if (acc) return fail('이미 가입된 이메일이에요. 로그인 탭에서 로그인해 주세요.', 'f-email');
+  } else if (!acc) {
+    return fail('이메일 또는 비밀번호가 맞지 않아요.', 'f-pw'); // 어느 쪽이 틀렸는지는 알려 주지 않아요
+  }
+  if (!(window.crypto && crypto.subtle)) return fail('이 브라우저에서는 비밀번호를 안전하게 저장할 수 없어요. 최신 브라우저에서 열어 주세요.', 'f-pw');
+  const submit = form.querySelector('[type="submit"]');
+  RT.authBusy = true; if (submit) submit.disabled = true;
+  let hash, salt;
+  try {
+    salt = reg ? toHex(crypto.getRandomValues(new Uint8Array(16))) : acc.salt;
+    hash = await hashPassword(pw, salt);
+  } catch (e) {
+    hash = null;
+  } finally {
+    RT.authBusy = false; if (submit) submit.disabled = false;
+  }
+  if (!hash) return fail('비밀번호를 확인하지 못했어요. 다시 시도해 주세요.', 'f-pw');
+  if (!reg && hash !== acc.hash) { const f = $('#f-pw', form); if (f) f.value = ''; return fail('이메일 또는 비밀번호가 맞지 않아요.', 'f-pw'); }
   const persona = String(fd.get('persona') || '');
-  S.user = { nickname: reg ? name : email.split('@')[0], email, guest: false };
-  if (reg && PERSONAS[persona]) S.user.persona = persona; // [index5] 직업군 (고르지 않으면 저장하지 않음)
+  if (reg) {
+    S.accounts[key] = { email, nickname: name, salt, hash, at: Date.now() };
+    if (PERSONAS[persona]) S.accounts[key].persona = persona; // [index5] 직업군 (고르지 않으면 저장하지 않음 = 선택 안 함)
+  }
+  const a = S.accounts[key];
+  S.user = { nickname: a.nickname, email: a.email, guest: false };
+  if (a.persona && PERSONAS[a.persona]) S.user.persona = a.persona;
   closeSheet();
   save();
   go('home');
   toast(`${S.user.nickname}님, 환영해요`);
+}
+
+/* ---------- [10/22 팀 확정] 회원 탈퇴 (⑰ · SH-11) ----------
+ *  계정 시트 [회원 탈퇴] → 지울 것을 알리고 비밀번호를 한 번 더 받아요 → 맞으면 withdrawAccount()
+ *  [취소]는 계정 시트로 돌아가요. 비밀번호가 틀리면 칸을 비우고 다시 받아요 (몇 번 틀렸는지는 세지 않아요 · 실서비스는 서버가 제한) */
+function openWithdrawSheet() {
+  if (!isMember()) return;
+  openSheet(`
+    <h3 class="text-[19px] font-extrabold">회원 탈퇴할까요?</h3>
+    <p class="mt-1.5 text-sm text-ink-600 leading-relaxed break-keep"><b class="text-ink-800">${esc(S.user.email)}</b> 계정과 진단 기록 · 복습 상태 · 진행 중인 진단 · 내 서재 · 설정이 모두 삭제되고 되돌릴 수 없어요.</p>
+    <form id="withdraw-form" class="mt-4 space-y-3.5" novalidate>
+      <div>
+        <label class="label" for="f-pw">비밀번호 확인</label>
+        <div class="relative">
+          <input id="f-pw" name="password" type="password" class="field !pr-16" maxlength="64" placeholder="지금 쓰는 비밀번호" autocomplete="current-password">
+          <button type="button" class="absolute right-1 top-1/2 -translate-y-1/2 h-11 px-3 text-[13px] font-bold text-ink-500" data-action="toggle-pw" aria-controls="f-pw" aria-pressed="false">보기</button>
+        </div>
+      </div>
+      <p id="auth-error" class="hidden text-sm font-semibold text-illusion-600" role="alert"></p>
+      <div class="grid grid-cols-2 gap-2">
+        <button type="button" class="btn btn-lg btn-gray" data-action="open-account">취소</button>
+        <button type="submit" class="btn btn-lg bg-solid-danger hover:bg-solid-danger-hover text-white">탈퇴하기</button>
+      </div>
+    </form>`, { name: 'withdraw' });
+}
+async function handleWithdraw(form) {
+  if (RT.authBusy) return;
+  if (!isMember()) { closeSheet(); return; }
+  const acc = S.accounts[S.user.email.toLowerCase()];
+  const pw = String(new FormData(form).get('password') || '');
+  const err = $('#auth-error'), f = $('#f-pw', form);
+  const fail = (m) => {
+    err.textContent = m; err.classList.remove('hidden');
+    if (f) { f.setAttribute('aria-invalid', 'true'); f.setAttribute('aria-describedby', 'auth-error'); f.classList.remove('shake'); void f.offsetWidth; f.classList.add('shake'); f.focus(); }
+  };
+  if (!pw) return fail('비밀번호를 입력해 주세요.');
+  if (!(window.crypto && crypto.subtle)) return fail('이 브라우저에서는 비밀번호를 확인할 수 없어요. 최신 브라우저에서 열어 주세요.');
+  const submit = form.querySelector('[type="submit"]');
+  RT.authBusy = true; if (submit) submit.disabled = true;
+  let hash = null;
+  try { hash = await hashPassword(pw, acc.salt); } catch (e) { hash = null; } finally { RT.authBusy = false; if (submit) submit.disabled = false; }
+  if (!hash) return fail('비밀번호를 확인하지 못했어요. 다시 시도해 주세요.');
+  if (hash !== acc.hash) { if (f) f.value = ''; return fail('비밀번호가 맞지 않아요.'); }
+  withdrawAccount(S.user.email);
+}
+/** 이 계정 + 이 브라우저의 기록 · 내 서재 · 설정을 모두 지우고 시작 화면으로 (이 브라우저의 다른 계정은 남겨요) */
+function withdrawAccount(email) {
+  closeSheet(); stopTicker(); stopReviewTimer();
+  const accounts = { ...S.accounts };
+  delete accounts[String(email).toLowerCase()];
+  try { [STORAGE_KEY, PREV_KEY, LEGACY_KEY].forEach((k) => localStorage.removeItem(k)); } catch (e) { /* 무시 */ }
+  S = freshState(); S.accounts = accounts;
+  save();
+  RT.reviewIndex = 0; RT.flipped = false; RT.openRows.clear(); RT.rollPrev = {}; RT.reviewScope = null; RT.reviewSubject = 'ALL';
+  RT.libOpen.clear(); RT.libOpenInit = false; RT.libEdit = null; RT.histVisited = false; RT.homeTab = 'keyword';
+  go('landing'); toast('회원 탈퇴가 끝났어요. 그동안 이용해 주셔서 고마워요');
 }
 
 /* ---------- 확신도 기준(앵커): 첫 진단 전에 한 번 — 기준이 같아야 확신도 데이터가 정확해져요 ---------- */
@@ -4897,8 +5010,16 @@ const ACTIONS = {
   'open-auth': (el) => openAuthSheet(el.dataset.tab || 'login'),
   'auth-demo': () => {
     const set = (id, v) => { const f = $(id); if (f) f.value = v; };
-    set('#f-email', 'student@university.ac.kr'); set('#f-name', '홍길동'); // [index5] 비밀번호 칸은 없어요 · 이 버튼은 ?dev=1에서만
+    set('#f-email', 'student@university.ac.kr'); set('#f-name', '홍길동'); set('#f-pw', 'demo1234'); // [index5] 이 버튼은 ?dev=1에서만
     setPersonaPick('UNIVERSITY'); // [index5] 데모 계정은 대학생으로 (회원가입 탭일 때만 칩이 있어요)
+  },
+  // [index5] 비밀번호 보기 · 숨기기
+  'toggle-pw': (el) => {
+    const f = $('#f-pw'); if (!f) return;
+    const show = f.type === 'password';
+    f.type = show ? 'text' : 'password';
+    el.textContent = show ? '숨기기' : '보기'; el.setAttribute('aria-pressed', show);
+    f.focus();
   },
   // [index5] 직업군 칩: 하나만 고르고, 같은 칩을 다시 누르면 해제
   'pick-persona': (el) => { const f = $('#f-persona'); setPersonaPick(f && f.value === el.dataset.k ? '' : el.dataset.k); },
@@ -4906,19 +5027,17 @@ const ACTIONS = {
   'anchors-ok': () => { S.seenAnchors = true; save(); closeSheet(); beginQuiz(); },
   'open-guide': () => openGuideSheet(),
   'open-account': () => openSheet(accountHTML(), { name: 'account', label: '계정 · 설정', footer: accountFooterHTML() }),
-  'set-theme': (el) => { S.prefs.theme = el.dataset.k; save(); applyPrefs(); }, // 시트를 다시 그리지 않아 스위치 애니메이션 유지
-  'set-theme-seg': (el) => { if (S.prefs.theme === el.dataset.k) return; S.prefs.theme = el.dataset.k; save(); applyPrefs(); },
-  'toggle-theme': () => { S.prefs.theme = isDark() ? 'light' : 'dark'; save(); applyPrefs(); if (RT.sheet && RT.sheet.name === 'account') updateSheet(accountHTML()); },
   'toggle-sound': () => { S.prefs.sound = !S.prefs.sound; save(); syncToggles(); if (S.prefs.sound) Sound.play('correct'); toast(S.prefs.sound ? '효과음을 켰어요' : '효과음을 껐어요'); },
   'set-sound': (el) => { S.prefs.sound = el.dataset.k === 'true'; save(); syncToggles(); updateSheet(accountHTML()); if (S.prefs.sound) Sound.play('correct'); },
   'close-sheet': () => { if (RT.sheet && RT.sheet.dismissible) dismissSheet(); else closeSheet(); },
   'toggle-pace': () => { S.prefs.showPace = !S.prefs.showPace; save(); syncToggles(); toast(S.prefs.showPace ? '풀이 중 페이스를 보여 드려요' : '페이스 표시를 숨겼어요. 시간은 조용히 기록돼요'); },
-  'ask-reset': () => confirmSheet({ title: '모든 기록을 초기화할까요?', desc: '진단 기록 · 복습 상태 · 진행 중인 진단이 모두 삭제되고 되돌릴 수 없어요. 내 서재에 저장한 과목 · 단원은 남아요.', ok: '초기화', okAction: 'confirm-reset' }),
+  'ask-reset': () => confirmSheet({ title: '모든 기록을 초기화할까요?', desc: '진단 기록 · 복습 상태 · 진행 중인 진단이 모두 삭제되고 되돌릴 수 없어요. 내 서재에 저장한 과목 · 단원과 가입한 계정은 남아요.', ok: '초기화', okAction: 'confirm-reset' }),
+  'ask-withdraw': () => openWithdrawSheet(), // [10/22] 회원 탈퇴 (⑰)
   'confirm-reset': () => {
     closeSheet(); stopTicker();
     try { localStorage.removeItem(STORAGE_KEY); } catch (e) { /* 무시 */ }
-    const prefs = S.prefs, library = S.library; // [index5] 내 서재는 '기록'이 아니라 내가 만든 목록이라 남겨요
-    S = freshState(); S.prefs = prefs; S.library = library;
+    const prefs = S.prefs, library = S.library, accounts = S.accounts; // [index5] 내 서재는 '기록'이 아니라 내가 만든 목록이라 남겨요 · 가입한 계정도 남겨 다시 로그인할 수 있게
+    S = freshState(); S.prefs = prefs; S.library = library; S.accounts = accounts;
     save();
     RT.reviewIndex = 0; RT.flipped = false; RT.openRows.clear(); RT.rollPrev = {};
     go('landing'); toast('모든 기록을 초기화했어요');
@@ -5016,14 +5135,33 @@ const ACTIONS = {
     closeSheet();
     libStartUnit(x.sub.id, x.u.id);
   },
-  // [index5] 계정 시트에서 직업군 바꾸기 (다시 누르면 해제)
+  // [index5] 계정 시트에서 직업군 바꾸기 (선택한 칩을 다시 누르면 해제 = 선택 안 함)
+  // [10/25] 출제 수준이 그대로면(대학생 ↔ 선택 안 함) 진단을 지우지 않고 확인 창 없이 바로 바꿔요
+  // [확정 10/19] 수준이 바뀌어 지울 진단이 있으면 몇 개가 지워지는지 확인 창을 먼저 (취소하면 계정 시트로 돌아가요)
   'set-persona': (el) => {
-    if (!S.user) return;
+    if (!S.user || !PERSONAS[el.dataset.k]) return;
     const k = S.user.persona === el.dataset.k ? null : el.dataset.k;
-    if (k) S.user.persona = k; else delete S.user.persona;
-    save();
-    document.querySelectorAll('[data-action="set-persona"]').forEach((b) => { const on = b.dataset.k === k; b.className = personaChipCls(on); b.setAttribute('aria-pressed', on); });
-    toast(k ? `직업군: ${PERSONAS[k].label}` : '직업군 선택을 해제했어요');
+    if (levelOf(k) === levelOf(S.user.persona)) return applyPersona(k);
+    const d = personaDrop(k);
+    if (!d.n && !d.session) return applyPersona(k);
+    RT.pendingPersona = k;
+    const nm = (p) => (PERSONA_SHORT[p] ? `‘${PERSONA_SHORT[p]}’` : '‘선택 안 함’');
+    const what = d.n && d.session ? `진단 ${d.n}개와 풀던 진단이` : d.n ? `진단 ${d.n}개가` : '풀던 진단이';
+    confirmSheet({
+      title: k ? '직업군을 바꿀까요?' : '직업군 선택을 해제할까요?',
+      desc: `${nm(S.user.persona)} → ${nm(k)}으로 바꾸면 출제 수준이 달라져서, 그동안 푼 ${what} 삭제되고 되돌릴 수 없어요. 내 서재 · 설정은 남아요.`,
+      ok: k ? '바꾸고 삭제' : '해제하고 삭제', okAction: 'confirm-persona', cancelAction: 'open-account',
+    });
+  },
+  'confirm-persona': () => {
+    const k = RT.pendingPersona; RT.pendingPersona = undefined;
+    if (RT.sheet) RT.sheet.onClose = null;
+    closeSheet();
+    if (k === undefined || !S.user) return;
+    const d = dropPersonaRecords(k);
+    applyPersona(k, { quiet: true });
+    go('home');
+    toast(`${k ? '직업군을 바꾸고' : '직업군 선택을 해제하고'} ${d.n ? `이전 진단 ${d.n}개를` : '풀던 진단을'} 삭제했어요`);
   },
   // U: [수정] · [+ 단원] → 그 줄만 입력칸으로 다시 그려요 (단원을 고칠 땐 그 과목을 펼쳐 둬요)
   'lib-edit': (el) => {
@@ -5082,7 +5220,7 @@ const ACTIONS = {
     closeSheet(); stopTicker(); save(); go('home');
     toast('진행 상황을 저장했어요. 홈에서 이어서 풀 수 있어요');
   },
-  'exit-result': () => { if (!S.session || S.session.logs.length < EARLY_RESULT_MIN) return; if (RT.sheet) RT.sheet.onClose = null; closeSheet(); finishSession(true); },
+  'exit-result': () => { if (!S.session || mainCount(S.session) < EARLY_RESULT_MIN) return; if (RT.sheet) RT.sheet.onClose = null; closeSheet(); finishSession(true); },
   'exit-discard': () => confirmSheet({ title: '진단을 삭제할까요?', desc: '지금까지 푼 기록이 사라지고 되돌릴 수 없어요.', ok: '삭제', okAction: 'confirm-discard', cancel: '계속 풀기', cancelAction: 'exit-continue', onClose: resumeTimer }),
   'exit-retry-cancel': () => {
     if (RT.sheet) RT.sheet.onClose = null;
@@ -5153,7 +5291,7 @@ $('#sheet-root').addEventListener('click', (e) => {
 });
 
 document.addEventListener('input', (e) => {
-  if (e.target.matches && e.target.matches('#auth-form .field[aria-invalid]')) { // [index5] 가입 · 로그인 폼: 잘못됐다고 표시한 칸을 고치기 시작하면 표시와 오류 문구를 지워요
+  if (e.target.matches && e.target.matches('#auth-form .field[aria-invalid], #withdraw-form .field[aria-invalid]')) { // [index5] 가입 · 로그인 · 탈퇴 폼: 잘못됐다고 표시한 칸을 고치기 시작하면 표시와 오류 문구를 지워요
     e.target.removeAttribute('aria-invalid'); e.target.removeAttribute('aria-describedby');
     const er = $('#auth-error'); if (er) er.classList.add('hidden');
   }
@@ -5171,6 +5309,7 @@ document.addEventListener('change', (e) => {
 });
 document.addEventListener('submit', (e) => {
   if (e.target.id === 'auth-form') { e.preventDefault(); handleAuth(e.target); }
+  if (e.target.id === 'withdraw-form') { e.preventDefault(); handleWithdraw(e.target); } // [10/22] 회원 탈퇴 (⑰)
   if (e.target.id === 'lib-edit-form') { e.preventDefault(); libSaveEdit(); }        // [index5] 내 서재 U
   if (e.target.id === 'lib-add-form') { e.preventDefault(); libSubmitAdd(e.target); } // [index5] 내 서재 C
   if (e.target.id === 'kw-form') {
@@ -5309,13 +5448,6 @@ document.addEventListener('keydown', (e) => {
   }
   if (e.key === 'Escape') { hideTip(); if (RT.sheet && RT.sheet.dismissible) { dismissSheet(); return; } }
   if ((e.key === 'Enter' || e.key === ' ') && t.matches && t.matches('[role="button"][data-action]')) { e.preventDefault(); t.click(); return; }
-  if (t.closest && t.closest('#theme-seg') && ['ArrowLeft', 'ArrowRight', 'ArrowUp', 'ArrowDown'].includes(e.key)) {
-    e.preventDefault();
-    const k = /Left|Up/.test(e.key) ? 'light' : 'dark';
-    const b = document.querySelector(`#theme-seg [data-k="${k}"]`);
-    b.click(); b.focus();
-    return;
-  }
   if (RT.sheet || /INPUT|TEXTAREA|SELECT/.test(t.tagName)) return;
   if (S.view === 'review' && S.prefs.reviewMode === 'card') {
     if (e.key === 'ArrowRight') moveCard(1);
@@ -5349,10 +5481,6 @@ document.addEventListener('visibilitychange', () => {
 });
 
 window.addEventListener('resize', () => { if (S.view === 'quiz') fitDock(); hideTip(); });
-if (window.matchMedia) {
-  const mq = matchMedia('(prefers-color-scheme: dark)');
-  if (mq.addEventListener) mq.addEventListener('change', applyPrefs);
-}
 
 // 안드로이드 뒤로 가기 · 브라우저 뒤로 가기 대응
 window.addEventListener('popstate', (e) => {
@@ -5471,8 +5599,12 @@ function sanitize() {
   if (!Array.isArray(S.metrics)) S.metrics = [];
   // 이전 버전(index3 초기)에서 저장한, 이제는 쓰지 않는 값 정리: 정답 공개 방식 · 시험일 · 알림 · 학습 유형
   delete S.setup.feedback; delete S.examDate; delete S.prefs.notify;
-  // [index5] 직업군(persona)을 다시 써요 — 예전 버전의 '학습 유형' 값처럼 지금 목록에 없는 값만 정리
+  // [index5] 가입 계정: 솔트 · 해시가 없는 항목은 버려요 (비밀번호 없이 로그인되면 안 되니까)
+  S.accounts = Object.fromEntries(Object.entries(S.accounts && typeof S.accounts === 'object' ? S.accounts : {})
+    .filter(([, a]) => a && a.email && a.nickname && /^[0-9a-f]{32}$/.test(a.salt) && /^[0-9a-f]{64}$/.test(a.hash)));
+  // [10/25] 직업군이 목록 밖이면(예전 버전의 '학습 유형' 값 등) 선택 안 함으로 — 직업군 없음은 그대로 둬요
   if (S.user && S.user.persona && !PERSONAS[S.user.persona]) delete S.user.persona;
+  Object.values(S.accounts).forEach((a) => { if (a.persona && !PERSONAS[a.persona]) delete a.persona; });
   delete S.setup.learningState; // [index5] 학습 목적 칩은 없앴어요 (세부 요구사항과 겹침)
   S.setup.customPrompt = String(S.setup.customPrompt || '').slice(0, PROMPT_MAX);
   // [index5] 내 서재: 모양이 깨진 항목은 버리고 이름 · 개수 한도만 맞춰요

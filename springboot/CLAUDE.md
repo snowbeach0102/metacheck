@@ -12,7 +12,7 @@
 | 아직 없는 것 | 실제 Bedrock 호출 · 2차 풀이 검증 · 개념 추출(AI-01) · DB 엔티티 전부 · 로그인 · 호출 제한 |
 | 테스트 | 단위 테스트 **55개 전부 통과** (`question` 51 + `config` 4, DB 없이 돎) |
 | DB | EC2의 Docker MySQL 8 (`metacheck` DB). **접속 정보(주소 · 비밀번호)는 git 밖에 둔다** — 서버는 환경변수, 내 PC는 `config/application.properties`. 아래 "DB 접속 설정" |
-| git | 이 폴더는 상위 `C:\metacheck` 저장소(GitHub `snowbeach0102/metacheck`)의 일부. **11/03 작업은 아직 커밋 안 함** |
+| git | 이 폴더는 상위 `C:\metacheck` 저장소(GitHub `snowbeach0102/metacheck`)의 일부. 11/03 작업은 **커밋 · 푸시 완료**(`f7f1b84`~`c38d7a7`) |
 
 ## 먼저 알아야 할 위험 (꼭 읽을 것)
 

@@ -1,0 +1,12 @@
+[과목] {{subject}}     [요청 단계] {{level_label}} (lv {{level}})
+{{question_json}}
+<자료>{{material}}</자료>
+[난이도 판단 기준]
+{{level_criteria}}
+[할 일]
+- 보기를 하나씩 검토해, 지문이 묻는 것에 맞는 보기의 번호(0~3)를 모두 적는다.
+- [난이도 판단 기준]으로 이 문항이 몇 단계인지 판정한다.
+출력(JSON): { "correct": [맞는 보기 번호, ...],
+  "grounded": true|false,   # 자료 · 원리로 설명되나
+  "stage": 1|2|3,           # 기준으로 판정한 단계
+  "issue": "문제점 한 줄" }

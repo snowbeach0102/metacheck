@@ -3,3 +3,11 @@
 spring.datasource.url=jdbc:mysql://<DB 주소>:3306/metacheck?useSSL=false&allowPublicKeyRetrieval=true&characterEncoding=UTF-8&serverTimezone=Asia/Seoul
 spring.datasource.username=<DB 계정>
 spring.datasource.password=<DB 비밀번호>
+
+# 실제 Bedrock을 쓸 때만 아래 주석을 푼다 (기본은 가짜 모델 · 호출마다 비용 발생). AWS 키는 여기에 적지 않는다.
+# metacheck.ai.client=bedrock
+# metacheck.ai.bedrock.region=<리전>
+# metacheck.ai.bedrock.basic-model-id=<1 · 2단계 Haiku급 모델 ID 또는 추론 프로필 ID>
+# metacheck.ai.bedrock.advanced-model-id=<3단계 Sonnet급 모델 ID 또는 추론 프로필 ID>
+# 2차 풀이(생성된 문항을 다시 풀어 정답 확인)는 기본으로 켜져 있다. 호출이 약 2배라 끄려면:
+# metacheck.ai.verify=false

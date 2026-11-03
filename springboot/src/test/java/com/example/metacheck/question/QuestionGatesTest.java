@@ -83,6 +83,58 @@ class QuestionGatesTest {
     }
 
     @Test
+    void 문장_수_세기는_빈칸_없는_마침표를_문장_끝으로_보지_않는다() {
+        // 11/03: 코드 · SQL 의 마침표(System.out · s.dept)와 a != b 의 ! 가 문장 끝으로 세어져 시험형 문항이 걸렸다
+        assertThat(QuestionGates.sentences("System.out.println(a.b) 의 출력 결과는?")).isEqualTo(1);
+        assertThat(QuestionGates.sentences("SELECT s.name FROM student s 의 결과 행 수는?")).isEqualTo(1);
+        assertThat(QuestionGates.sentences("a != b 이면 참인가?")).isEqualTo(1);
+    }
+
+    @Test
+    void code_칸은_문자열이면_되고_없어도_되며_문장_수에서_빠진다() {
+        ObjectNode it = TestItems.item(2, "다음 Java 프로그램의 출력 결과는?", TestItems.STACK_OPTIONS, 1);
+        it.put("code", "class A {\n    void f() { System.out.println(\"A\"); }\n}\nclass B extends A { }\nnew B().f();");
+        assertThat(QuestionGates.gate1(it)).isEmpty();
+        assertThat(QuestionGates.gate2(it, 2)).isEmpty();
+
+        it.put("code", 5);
+        assertThat(QuestionGates.gate1(it)).containsExactly("code 가 문자열이 아님");
+        it.putNull("code");
+        assertThat(QuestionGates.gate1(it)).isEmpty();
+    }
+
+    @Test
+    void 중복_비교와_이미_낸_문항_줄에_코드가_들어간다() {
+        ObjectNode it = TestItems.item(2, "다음 코드의 출력 결과는?", TestItems.STACK_OPTIONS, 1);
+        it.put("code", "int x = 3;\nprintf(\"%d\", x);");
+        assertThat(QuestionGates.itemText(it)).startsWith("다음 코드의 출력 결과는? int x = 3;\nprintf");
+        assertThat(QuestionGates.stemLine(it)).isEqualTo("다음 코드의 출력 결과는? int x = 3; printf(\"%d\", x);");
+        assertThat(QuestionGates.stemLine(TestItems.item(1))).isEqualTo("스택의 정의로 가장 알맞은 것은?");
+    }
+
+    @Test
+    void 게이트2_풀이_요령이나_빈말_steps_는_걸린다() {
+        ObjectNode filler = TestItems.item(2);
+        filler.putArray("steps").add("보기를 하나씩 대조한다");
+        assertThat(QuestionGates.gate2(filler, 2)).anyMatch(e -> e.startsWith("steps 는 개념을 적용한 추론으로"));
+
+        ObjectNode tiny = TestItems.item(2);
+        tiny.putArray("steps").add("ㅁ");
+        assertThat(QuestionGates.gate2(tiny, 2)).anyMatch(e -> e.startsWith("steps 는 개념을 적용한 추론으로"));
+    }
+
+    @Test
+    void 게이트2_옳은_설명뿐이거나_빈말인_distractors_는_걸린다() {
+        ObjectNode notType = TestItems.item(1);
+        ((ObjectNode) notType.get("distractors")).put("0", "옳은 설명 — 스택의 정의");
+        assertThat(QuestionGates.gate2(notType, 1)).anyMatch(e -> e.startsWith("distractors 는 노린 오개념으로"));
+
+        ObjectNode tiny = TestItems.item(1);
+        ((ObjectNode) tiny.get("distractors")).put("0", "ㅁ");
+        assertThat(QuestionGates.gate2(tiny, 1)).anyMatch(e -> e.startsWith("distractors 는 노린 오개념으로"));
+    }
+
+    @Test
     void 게이트2_금지_표현을_지문_보기_해설_오답설명_전체에서_찾는다() {
         ObjectNode inOption = TestItems.item(1);
         inOption.putArray("o").add("위의 모두 옳다").add("나는 다르다").add("너도 다르다").add("우리는 다르다");
@@ -98,13 +150,17 @@ class QuestionGatesTest {
     }
 
     @Test
-    void 번째_같은_일반_표현은_금지_표현이_아니다() {
+    void 횟수나_순서를_말하는_일반_표현은_금지_표현이_아니다() {
+        // 11/03: "4번 발생" · "3번 반복"이 보기 번호로 잘못 걸려 계산 · 코드 문항이 탈락했다 — 보기를 가리키는 꼴만 잡는다
         ObjectNode it = TestItems.item(1);
-        it.put("x", "2번째 원소가 먼저 나오고 3개월 뒤에 1번 더 쓴다.");
-        // "1번 더"는 'N번' 이라 걸리지만 "2번째"는 걸리지 않는다 — 걸리는 것은 아래 한 건뿐이어야 한다
-        assertThat(QuestionGates.gate2(it, 1)).containsExactly("금지 표현(보기 번호 · 보기 참조)");
-        it.put("x", "2번째 원소가 먼저 나온다.");
-        assertThat(QuestionGates.gate2(it, 1)).isEmpty();
+        for (String x : new String[] {"2번째 원소가 먼저 나온다.", "3개월 뒤에 1번 더 쓴다.", "반복문은 3번 반복된다.", "페이지 부재가 4번 발생한다.", "1번 프로세스가 먼저 실행된다."}) {
+            it.put("x", x);
+            assertThat(QuestionGates.gate2(it, 1)).as(x).isEmpty();
+        }
+        for (String x : new String[] {"2번이 정답이다.", "1번과 2번은 틀리다.", "보기 3번은 옳다.", "4번 보기는 오답이다."}) {
+            it.put("x", x);
+            assertThat(QuestionGates.gate2(it, 1)).as(x).containsExactly("금지 표현(보기 번호 · 보기 참조)");
+        }
     }
 
     @Test

@@ -7,7 +7,7 @@ import java.util.List;
  * 문제 생성 요청 (API 본문). 값이 비었거나 범위를 벗어나면 {@link #toInput()} 이 IllegalArgumentException 을 던진다.
  *
  * @param persona           출제 역할. 없으면 대학생
- * @param examName          준비 중인 시험 이름. 자격증 역할일 때만 쓴다
+ * @param examName          준비 중인 시험 이름. 11/03 범위 축소 동안은 쓰지 않는다 — 수험생은 서버가 정보처리산업기사로 고정 (API 모양은 그대로 둠)
  * @param related           같은 진단의 나머지 개념. 3단계(심화)는 1개 이상 필요
  * @param previousQuestions 이미 낸 문항의 지문 (다시 생성 · 유사 문항에서 겹치지 않게)
  * @param material          PDF 단원 발췌 (없으면 생략)
@@ -80,7 +80,7 @@ public record GenerateRequest(
             }
         }
 
-        String exam = p == Persona.CERT_EXAM ? InputCleaner.cleanLine(examName, InputCleaner.EXAM_MAX) : "";
+        String exam = p == Persona.CERT_EXAM ? PromptTemplates.EXAM_NAME : "";
         return new PromptInput(p, sub, top, exam, main, List.copyOf(rel), level, n, List.copyOf(prev),
                 InputCleaner.cleanMaterial(material), InputCleaner.cleanUserRequest(userRequest));
     }

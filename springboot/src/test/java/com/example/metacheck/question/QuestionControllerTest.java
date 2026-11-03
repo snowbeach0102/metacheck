@@ -15,8 +15,9 @@ import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 class QuestionControllerTest {
 
     private static MockMvc mvc(ModelClient client) {
+        PromptTemplates templates = new PromptTemplates();
         QuestionGenerationService service = new QuestionGenerationService(
-                new PromptAssembler(new PromptTemplates(), new ExampleBank()), client, () -> 0, () -> new Random(1));
+                new PromptAssembler(templates, new ExampleBank()), client, new QuestionVerifier(templates), () -> 0, () -> new Random(1));
         return MockMvcBuilders.standaloneSetup(new QuestionController(service)).build();
     }
 
@@ -37,7 +38,26 @@ class QuestionControllerTest {
                 .andExpect(jsonPath("$.questions[0].o.length()").value(4))
                 .andExpect(jsonPath("$.questions[0].lv").value(2))
                 .andExpect(jsonPath("$.questions[0].distractors.length()").value(3))
+                .andExpect(jsonPath("$.questions[0].verify.verified").value(true))   // 2차 풀이를 거쳤다
+                .andExpect(jsonPath("$.questions[0].verify.stageOk").value(true))
                 .andExpect(jsonPath("$.attempts.length()").value(1));
+    }
+
+    @Test
+    void 수험생은_요청의_시험명과_상관없이_정보처리산업기사로_낸다() throws Exception {
+        // 앱은 시험명을 보내지 않는다(팀 규칙). 다른 시험명을 보내도 서버가 고정한 시험으로 출제한다 (11/03 범위 축소)
+        String cert = BODY.replace("\"UNIVERSITY\"", "\"CERT_EXAM\",\"examName\":\"정보처리기사 필기\"");
+        java.util.List<ModelClient.Request> seen = new java.util.concurrent.CopyOnWriteArrayList<>();
+        MockModelClient mock = new MockModelClient();
+        mvc(r -> {
+            seen.add(r);
+            return mock.invoke(r);
+        }).perform(post("/api/v1/ai/questions").contentType(MediaType.APPLICATION_JSON).content(cert.getBytes(java.nio.charset.StandardCharsets.UTF_8)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.status").value("pass"));
+        ModelClient.Request first = seen.get(0);
+        org.assertj.core.api.Assertions.assertThat(first.messages().get(0).text()).contains("[시험] 정보처리산업기사").doesNotContain("정보처리기사 필기");
+        org.assertj.core.api.Assertions.assertThat(first.system()).contains("[출제 범위] 정보처리산업기사");
     }
 
     @Test

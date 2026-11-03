@@ -8,11 +8,11 @@
 | 항목 | 내용 |
 |---|---|
 | 프로젝트 | 메타체크(MetaCheck) 백엔드 — Spring Boot **4.1.1**, Java 17, Gradle 9.7.1, 패키지 `com.example.metacheck` |
-| 지금 있는 기능 | **AI 문제 생성**(`question` 패키지, 가짜 모델로 동작) — 11/03에 만듦 |
-| 아직 없는 것 | 실제 Bedrock 호출 · 2차 풀이 검증 · 개념 추출(AI-01) · DB 엔티티 전부 · 로그인 · 호출 제한 |
-| 테스트 | 단위 테스트 **55개 전부 통과** (`question` 51 + `config` 4, DB 없이 돎) |
+| 지금 있는 기능 | **AI 문제 생성**(`question` 패키지) — 11/03부터 수험생은 **정보처리산업기사 고정 · 시험형 단계 기준 · 2차 풀이 검증**까지. 기본은 가짜 모델이고, 실제 Bedrock 호출 코드도 있다(켜려면 설정 필요) |
+| 아직 없는 것 | **실제 Bedrock으로 돌려 본 적 없음** · 개념 추출(AI-01) · DB 엔티티 전부 · 로그인 · 호출 제한 |
+| 테스트 | 단위 테스트 **101개 전부 통과** (`question` 97 + `config` 4, DB · AWS 없이 돎) |
 | DB | EC2의 Docker MySQL 8 (`metacheck` DB). **접속 정보(주소 · 비밀번호)는 git 밖에 둔다** — 서버는 환경변수, 내 PC는 `config/application.properties`. 아래 "DB 접속 설정" |
-| git | 이 폴더는 상위 `C:\metacheck` 저장소(GitHub `snowbeach0102/metacheck`)의 일부. 11/03 작업은 **커밋 · 푸시 완료**(`f7f1b84`~`c38d7a7`) |
+| git | 이 폴더는 상위 `C:\metacheck` 저장소(GitHub `snowbeach0102/metacheck`)의 일부. 11/03 작업은 **커밋 · 푸시 완료**(오전 `f7f1b84`~`c38d7a7`, 저녁 `11/03/화 정보처리산업기사 출제 기준 · 단원 세분화`) |
 
 ## 먼저 알아야 할 위험 (꼭 읽을 것)
 
@@ -34,7 +34,7 @@ git이 추적하는 `src/main/resources/application.properties`에는 비밀번�
 
 ## 실행 · 테스트 (Windows PowerShell)
 
-JDK 17이 PATH에 없어서 `JAVA_HOME`을 지정해야 한다. 아래 경로는 11/03에 쓴 PC 기준이니 **다른 컴퓨터에서는 그 컴퓨터의 JDK 17 위치로 바꿀 것**(처음 하는 컴퓨터라면 `../CLAUDE.md`의 "다른 컴퓨터에서 이어서 하기"부터).
+JDK 17이 PATH에 없어서 `JAVA_HOME`을 지정해야 한다. 아래 경로는 11/03 오전 PC 기준이니 **다른 컴퓨터에서는 그 컴퓨터의 JDK 17 위치로 바꿀 것**(PowerPoint가 있는 PC는 `C:\Program Files\Eclipse Adoptium\jdk-17.0.20.101-hotspot`. 처음 하는 컴퓨터라면 `../CLAUDE.md`의 "다른 컴퓨터에서 이어서 하기"부터).
 
 ```powershell
 $env:JAVA_HOME='C:\Program Files\Microsoft\jdk-17.0.12.7-hotspot'
@@ -59,18 +59,28 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 
 팀이 Node로 만든 러너(`C:\mine_metacheck\ai관련\bedrock_12칸\run-bedrock.mjs`)를 Java로 옮긴 것이다. 사양서는 `C:\mine_metacheck\ai관련\AI_출제_사양서.pdf`.
 
-**흐름:** 요청 → 입력 정리 → 프롬프트 조립 → 모델 호출 → 게이트 ① 형식 · ② 규칙 · 중복 검사 → 걸린 문항만 **1회 재생성** → 보기 섞기 → 응답. (사양서의 ③ 2차 풀이 검증 호출은 아직 없다.)
+**흐름:** 요청 → 입력 정리 → 프롬프트 조립 → 모델 호출 → 게이트 ① 형식 · ② 규칙 · 중복 검사 → **③ 2차 풀이**(①②를 통과한 문항만, 여러 개면 병렬) → 걸린 문항만 **1회 재생성** → 보기 섞기 → 응답.
+
+**11/03 정보처리산업기사 · 시험형(사용자 결정)** — 기준 문서는 사양서 3 · 4 · 8 · 15쪽.
+- 수험생(`CERT_EXAM`)은 `[시험]` 줄이 항상 `exam-name.txt`(정보처리산업기사)이고 요청의 `examName` 은 쓰지 않는다. SYSTEM 의 `{{exam_scope}}` 자리에 출제 범위(`exam-scope.txt`, 출제기준 세부항목 22개)가 들어가고 대학생은 그 줄이 통째로 빠진다.
+- 자격증 역할별 형식: 1단계 정의 · 특징(옳은 / 옳지 않은 것), 2단계 코드 · SQL · 계산 적용, 3단계 여러 개념을 엮은 코드 · SQL · 사례(`PromptAssembler.FORMAT_CERT`).
+- 출력에 선택 칸 `code`(코드 · SQL · 표). 응답 `questions[].code` 로 내보낸다(없으면 null).
+- ③ 2차 풀이(`QuestionVerifier`): 검증자에게 지문 · 코드 · 보기만 보내고(600토큰 · 온도 0 · 생성과 같은 등급), 정답 불일치 · 정답 2개 이상 · 맞는 보기 없음 · 근거 없음이면 그 문항을 재생성한다. 단계 판정이 다르면 기록만(`questions[].verify.stageOk`). 검증 응답이 두 번 다 형식에 안 맞으면 **검증 못 한 채 통과**하고 `verify.verified=false` 로 남긴다(Node 와 같음). 끄려면 `metacheck.ai.verify=false`(환경변수 `AI_VERIFY`) — 호출이 약 2배라서.
 
 | 파일 | 하는 일 |
 |---|---|
 | `QuestionController` | `POST /api/v1/ai/questions`. 잘못된 요청 400, 모델 호출 실패 502. **로그인 · 호출 제한 없음** |
 | `QuestionGenerationService` | 위 흐름 전체. 진입점은 `generate(GenerateRequest)` — 진단 흐름에서는 이걸 서버 안에서 직접 부르면 된다 |
 | `GenerateRequest` / `PromptInput` / `InputCleaner` | 요청 검증 · 정리(줄바꿈 · 중괄호 · 태그 흉내 제거, 길이 자르기). 3단계는 `related` 필수, 문항 수 1~5 |
-| `PromptAssembler` / `PromptTemplates` / `ExampleBank` | SYSTEM · USER 조립. 템플릿은 `resources/prompts/*.txt`, 예시는 `examples.json`(팀 검수 전 AI 초안 18개) |
-| `QuestionGates` | 게이트 ① 형식 · ② 규칙 · 문장 수 · 금지 표현 · 정답 길이 편향 · 중복(Dice 유사도) |
+| `PromptAssembler` / `PromptTemplates` / `ExampleBank` | SYSTEM · USER 조립. 템플릿은 `resources/prompts/*.txt`(시험 · 출제 범위 · 2차 풀이 틀 포함), 예시는 `examples.json`(팀 검수 전 AI 초안 18개 — 수험생 9개는 정보처리산업기사) |
+| `QuestionGates` | 게이트 ① 형식(`code` 는 글이면 됨) · ② 규칙 · 문장 수(지문만 · 빈칸 없는 마침표 제외) · 금지 표현(보기를 가리키는 꼴만) · 풀이 · 오답 설명(steps 6자 · 풀이 요령 금지, distractors 4자 · "옳은 설명" 금지) · 정답 길이 편향 · 중복(Dice 유사도, 코드 포함) |
+| `QuestionVerifier` | 게이트 ③ 2차 풀이 — 검증 요청 글 만들기 · 검증자 답 판정(Node 의 `buildVerifyRequest` · `deriveVerify`) |
+| `ExamUnits` | 정보처리산업기사 단원표(`prompts/exam-units.json`, 원본은 `ai관련/소스/exam-units.json`) — 3과목 · 주요항목 8 · 단원 22 · 단원마다 개념 3개(초안, 정보처리기사 공식 출제기준의 같은 세부항목 세세항목에 맞춤 — JSON 의 `basis` 는 서버가 읽지 않는다) |
+| `UnitQuestionService` / `UnitController` | 단원별 출제(11/03). `GET /api/v1/ai/units` · `GET /api/v1/ai/units/{id}` · `POST /api/v1/ai/units/{id}/questions` — 본문 `{levels:[1,2,3], count:1, userRequest}`(모두 선택). 개념 3개 × 단계마다 `QuestionGenerationService` 를 병렬로 부르고(수험생 고정, 3단계 [관련 개념] = 같은 단원의 나머지 두 개념), 칸마다 결과(`cells[]`)와 합계(`requested` · `passed`)를 돌려준다. 칸당 3문항 · 전체 15문항 상한(초안), 없는 단원 404 · 잘못된 값 400 · 모델 실패 502. 로그인 · 호출 제한 없음 |
 | `OptionShuffler` | 보기 섞기. 조합(ㄱ,ㄴ) · 숫자 · 순서 보기는 섞지 않고 정렬, 모델이 `shuffle:false`면 그대로 |
-| `ModelClient` | **모델 호출부 인터페이스.** 실제 Bedrock은 이 구현체 하나만 더하면 된다 |
-| `MockModelClient` | 개발용 가짜 모델(기본값). 내용은 `[모의]` 표시가 붙은 뜻 없는 글자 |
+| `ModelClient` | **모델 호출부 인터페이스.** 요청에 모델 등급(`Tier`: `BASIC` · `ADVANCED`)이 들어 있고, 구현체는 `metacheck.ai.client`로 고른다 |
+| `MockModelClient` | 개발용 가짜 모델(기본값). 내용은 `[모의]` 표시가 붙은 뜻 없는 글자. 2차 풀이 요청(`[할 일]` 이 있는 글)에는 자기가 낸 문항의 정답 위치를 답한다 |
+| `BedrockModelClient` | 실제 Bedrock 호출(AWS SDK Converse, `metacheck.ai.client=bedrock`일 때만). 일시 오류는 최대 4번 호출(2초 × n 대기, Node와 같음). 권한 · 요청 오류는 재시도 없이 `ModelCallException`(→ 502) |
 | `GenerateResult` | 응답 모양. `status`: `pass` · `pass-after-retry` · `partial` · `skipped` · `fail` |
 | `config/DatabaseSettingsCheck` | (`question` 패키지 밖) DB 비밀번호가 없으면 접속 전에 이유를 알리고 멈춤. `MetacheckApplication.main`이 연결 |
 | `Json` | Jackson 3 도구. `pretty()`는 JS `JSON.stringify(v,null,2)`와 같은 모양(프롬프트 [예시]가 Node와 같아야 해서) |
@@ -78,30 +88,34 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 **요청 예**
 
 ```json
-{ "persona": "CERT_EXAM", "subject": "정보처리기사 필기", "topic": "데이터베이스", "examName": "정보처리기사 필기",
+{ "persona": "CERT_EXAM", "subject": "데이터베이스 활용", "topic": "논리 데이터베이스 설계",
   "concept": { "id": "c1", "name": "정규화", "desc": "중복을 줄이는 설계 과정" },
   "related": [ { "name": "함수적 종속", "desc": "결정 관계" } ],
   "level": 3, "count": 2,
   "previousQuestions": [], "material": null, "userRequest": null }
 ```
+(`examName` 을 보내도 수험생은 정보처리산업기사로 낸다. `previousQuestions` 는 지문 + 코드를 한 줄로 — 코드 문항은 지문만으로는 구별되지 않는다)
 
-응답: `status`, `requested`, `questions[]`(`c, lv, concepts, steps, q, o[4], a, distractors{"보기번호":"노린 오개념"}, x(해설), ev(근거), shuffleMode, shuffleNote`), `attempts[]`(`n, ms, errors`), `skipped[]`, `exampleIds`.
-`persona`가 없으면 `UNIVERSITY`(앱에서 직업군을 안 고르면 대학생 수준으로 출제한다는 팀 결정).
+응답: `status`, `requested`, `questions[]`(`c, lv, concepts, steps, q, code(없으면 null), o[4], a, distractors{"보기번호":"노린 오개념"}, x(해설), ev(근거), shuffleMode, shuffleNote, verify{verified, stage, stageOk, issue, note}(검증을 끄면 null)`), `attempts[]`(`n, ms, errors` — ③ 오류는 "③ …"), `skipped[]`, `exampleIds`.
+`persona`가 없으면 `UNIVERSITY`(앱에서 직업군을 안 고르면 대학생 수준으로 출제한다는 팀 결정). 11/03부터 앱은 정보처리산업기사 범위로 축소되어 항상 `CERT_EXAM`을 보낸다(`../CLAUDE.md`).
 
-**사양서의 초안 숫자** — 전부 실제 모델 출력을 보고 조정해야 한다: 정답 길이 편향 1.25배(`QuestionGates.BIAS`), 짧은 보기 제외 15자, 중복 0.75, 호출당 5문항, 재시도 2회, 온도 0.7.
-**사양서에 없어서 직접 정한 값:** 응답 길이 문항당 2000토큰(최대 8000), PDF 발췌 8000자, 사용자 요청 100자, 과목 40자 · 단원 60자(앱 입력칸과 같음), 관련 개념이 여럿이면 ` / `로 이어 붙임.
+**사양서의 초안 숫자** — 전부 실제 모델 출력을 보고 조정해야 한다: 정답 길이 편향 1.25배(`QuestionGates.BIAS`), 짧은 보기 제외 15자, 중복 0.75, 호출당 5문항, 재시도 2회, 온도 0.7, steps 한 줄 6자 · distractors 한 줄 4자(11/03), 2차 풀이 600토큰 · 온도 0.
+**사양서에 없어서 직접 정한 값:** 응답 길이 문항당 2000토큰(최대 8000), PDF 발췌 8000자, 사용자 요청 100자, 과목 40자 · 단원 60자(앱 입력칸과 같음), 이미 낸 문항 한 줄 1500자(코드 포함이라 11/03에 300 → 1500), 관련 개념이 여럿이면 ` / `로 이어 붙임, Bedrock 호출 한 번의 상한 60초(`metacheck.ai.bedrock.timeout-seconds`), 2차 풀이 병렬 풀 8개.
+**팀 결정(11/03 사용자 확인):** 1 · 2단계는 `BASIC`(Haiku급), 3단계는 직업군과 상관없이 `ADVANCED`(Sonnet급). 발표 28번과 같고, 사양서 10쪽의 "대학생 심화는 필요할 때"와는 다르다. 규칙은 `QuestionGenerationService.generate` 한 곳에 있다.
 
-**Node 원본과 일부러 다르게 한 곳 4가지**
-1. 금지 표현 "N번": Node의 `\b[1-4]번\b`은 한글 문장에서 안 걸린다 → 의도대로 걸리게 다시 씀("2번째"는 제외).
-2. 호출자가 준 `previousQuestions`는 지문끼리만 비교(보기까지 합치면 유사도가 희석돼 놓침).
-3. `null` 필드는 "없음"으로 취급(더 엄격).
-4. 과목 · 시험 같은 한 줄 입력에도 `</사용자 요청>` 같은 태그 흉내를 제거.
+**Node 원본과 일부러 다르게 한 곳 3가지** (11/03에 금지 표현은 Node 도 같은 식으로 고쳐 이제 같다)
+1. 호출자가 준 `previousQuestions`는 지문 + 코드 한 줄끼리만 비교하고, 새 문항 쪽도 입력 정리(중괄호 · 줄바꿈 제거)를 똑같이 거친 뒤 비교한다(보기까지 합치면 유사도가 희석돼 놓침).
+2. `null` 필드는 "없음"으로 취급(더 엄격). `code: null` 은 "코드 없음".
+3. 과목 · 단원 같은 한 줄 입력에도 `</사용자 요청>` 같은 태그 흉내를 제거.
 
 ## 테스트가 보장하는 것
 
-- `PromptAssemblerTest`: 프롬프트 4칸이 **Node 조립기 결과와 글자 하나까지 같다**(`golden/cells.json`).
-- `NodeParityTest`: 예시 문항 6개를 14가지로 망가뜨린 84건 · 보기 고정순서 23건 · 유사도 23쌍에서 **Node 원본과 같은 판정**(`golden/parity.json`). 기준값을 바꾸면 이 테스트가 깨진다(실제로 확인함).
-- `QuestionGenerationServiceTest` · `MockModelClientTest` · `QuestionGatesTest` · `OptionShufflerTest` · `QuestionControllerTest`(스프링 컨텍스트 없는 MockMvc) · `QuestionWiringTest`(빈 연결).
+- `PromptAssemblerTest`: 프롬프트 4칸이 **Node 조립기 결과와 글자 하나까지 같다**(`golden/cells.json`, 수험생 칸은 출제 범위 포함). 출제 범위는 수험생에게만, 시험명은 고정.
+- `NodeParityTest`: 예시 문항 6개를 25가지로 망가뜨린 150건(11/03 규칙 11가지 포함) · 보기 고정순서 · 유사도(코드 문항 포함) · 문장 수 세기 · 중복 비교용 글 · **2차 풀이 요청 글**에서 **Node 원본과 같은 결과**(`golden/parity.json`). 기준값을 바꾸면 이 테스트가 깨진다.
+- `QuestionGenerationServiceTest`: 생성 · 재생성 흐름 + 2차 풀이(통과 · 정답 불일치 재생성 · 정답 2개 · 검증 응답 오류 · 단계 기록 · 병렬 검증 결과 대응 · 호출 실패 전달 · 코드 문항).
+- `BedrockModelClientTest`: 요청 변환 · 등급별 모델 ID · 재시도 · 예외 + **실제 AWS SDK로 로컬 가짜 서버에 보내는 왕복**(AWS 접속 · 비용 없음).
+- `ExamUnitsTest`(22단원 · 출제 범위 글과 이름 일치 · 개념 길이) · `UnitQuestionServiceTest`(9칸 · 수험생 · 관련 개념 · 상한 · 404 · 실패 전달) · `UnitControllerTest`.
+- `QuestionGenerationServiceTest` · `MockModelClientTest` · `QuestionGatesTest` · `OptionShufflerTest` · `QuestionControllerTest`(스프링 컨텍스트 없는 MockMvc) · `QuestionWiringTest`(빈 연결, bedrock 설정이 빠지면 시작 안 함).
 - 모든 `question` 테스트는 `@SpringBootTest`를 쓰지 않아서 DB에 안 붙는다.
 
 ## 사양서와 맞추기 (Node 쪽이 바뀌었을 때)
@@ -112,7 +126,7 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 cd C:\mine_metacheck\ai관련\소스
 node assemble-bedrock.js bedrock_out3          # prompts12.json 다시 만들기 → ../bedrock_12칸/ 으로 복사 (소스/README.md 참고)
 cd C:\metacheck\springboot
-node tools/sync-from-ai-spec.mjs               # 프롬프트 조각 · 예시 · 골든 4종을 다시 씀 (--ai, --out 옵션)
+node tools/sync-from-ai-spec.mjs               # 프롬프트 조각(시험 · 출제 범위 · 2차 풀이 틀 포함) · 예시 · 골든을 다시 씀 (--ai, --out 옵션)
 .\gradlew test --tests "com.example.metacheck.question.*"
 ```
 
@@ -120,15 +134,18 @@ node tools/sync-from-ai-spec.mjs               # 프롬프트 조각 · 예시 �
 
 ## 남은 일 (우선순위 순)
 
-1. **실제 Bedrock 연결** — 인프라 쪽에서 모델 ID · 리전 · 접근 방식(EC2 역할 권장, 로컬은 `aws configure`)을 받아야 한다. 해야 할 일:
-   `ModelClient` 구현체 추가(`@ConditionalOnProperty(name="metacheck.ai.client", havingValue="bedrock")`) · AWS SDK `bedrockruntime`의 Converse API(system / messages / inferenceConfig 그대로 대응) · 스로틀링 재시도(Node는 최대 4회, 2초×n) · SDK 예외를 `ModelCallException`으로 감싸기 · 모델 ID · 리전은 설정으로(코드나 저장소에 키 금지).
-   설정이 `bedrock`인데 구현체가 없으면 앱이 일부러 시작되지 않는다(가짜 응답이 운영에 섞이지 않게 — `QuestionWiringTest`가 보장).
-   사양서 권장: 1 · 2단계는 Haiku급, 수험생 심화(3단계)는 Sonnet급 → 지금 인터페이스는 모델이 하나라 단계별 선택을 추가해야 한다.
-2. **엔드포인트 보호** — 로그인 + 호출 횟수 제한. 실제 Bedrock을 붙이면 호출마다 돈이 든다. 붙이기 전에 먼저.
-3. **게이트 ③ 2차 풀이 검증** — 생성된 문항을 다른 호출로 풀어 보게 해서 정답 일치 · 근거 · 단계를 확인(프롬프트는 `ai관련/bedrock_12칸/프롬프트_12칸.md`와 사양서 8쪽).
-4. **개념 추출(AI-01)** — 과목 · 단원 → 핵심 개념 3개(프롬프트 `AI-01_프롬프트.md`, 응답 10초 제한이라 검증 호출 없이 서버 규칙만).
+팀 결정 · 서버 관리 쪽 일까지 합친 전체 목록은 `C:\mine_metacheck\CLAUDE.md` 의 "다음에 할 일". 아래는 이 백엔드에서 할 일이다.
+
+1. **실제 Bedrock 켜기** — 코드는 11/03에 끝났다(로컬 가짜 서버로 앱 전체 경로 확인). **실제 모델로는 아직 안 돌렸다.** 남은 것:
+   인프라 쪽에서 리전 · Haiku급 · Sonnet급 모델 ID(또는 추론 프로필 ID)를 받고, EC2 역할에 `bedrock:InvokeModel`을 준 뒤 환경변수 `AI_CLIENT=bedrock` · `BEDROCK_REGION` · `BEDROCK_BASIC_MODEL_ID` · `BEDROCK_ADVANCED_MODEL_ID`를 준다(키는 코드 · 저장소에 두지 않는다. 로컬 PC에는 AWS 자격 증명이 없다).
+   값이 빠지면 앱이 시작되지 않는다(가짜 응답이 운영에 섞이지 않게). 재배포할 때 쓰는 jar에도 같은 값이 필요하다.
+   첫 실행에서 볼 것: 호출 시간(사양서의 앱 10초 제한과 맞는지 · 2차 풀이로 약 2배) · 60초 상한 · 사양서 초안 숫자 전부 · **코드 · SQL 문항이 `code` 칸으로 나오는지** · 정답이 가장 긴 보기 비율.
+   **Haiku 4.5 · Sonnet 4.5에서는 `temperature` 0.7이 된다.** Claude 4.7 이상으로 바꾸면 기본값이 아닌 `temperature`를 거부할 수 있으니 그때 `QuestionGenerationService.TEMPERATURE` · `QuestionVerifier.TEMPERATURE`(0) 전달을 함께 봐야 한다.
+2. **엔드포인트 보호** — 로그인 + 호출 횟수 제한. `POST /api/v1/ai/questions`가 지금 누구나 부를 수 있어서 Bedrock을 켜면 호출마다 돈이 든다. **켜기 전에 먼저.**
+3. **앱과 단원별 출제 연결** — 단원표 · 단원 API 는 11/03에 만들었다(위 `UnitController`, 진단 한 번 = 단원 하나, 사용자 결정). 남은 것: 앱이 서버가 만든 문항을 진단 · 기록에 저장하도록 고치고(지금은 `BANKS` 에 있는 문항만 쓴다 — `../CLAUDE.md` "단원 세분화 · 단원별 출제"), `mock:false` 로 붙인다. 실제 Bedrock 을 켠 뒤에. 여러 단원을 섞는 과목 진단과 그 비율은 **팀이 정한다**. 단원 개념(초안)은 큐넷 세세항목을 받으면 `exam-units.json` 에서 고친다.
+4. **AI-01 개념 추출** — 범위 축소 동안은 단원표가 대신한다. 다시 쓰게 되면 프롬프트는 `AI-01_프롬프트.md`(10초 제한이라 검증 호출 없이 서버 규칙만).
 5. **DB 엔티티와 저장** — `src`에 `@Entity`가 **하나도 없다.** 팀 ERD v5(`C:\mine_metacheck\ERD\`)가 기준이다. DB에 지금 어떤 테이블이 있는지 사용자에게 먼저 확인할 것(인계 때 "엔티티 테이블이 자동 생성됨"이라 했지만 코드엔 엔티티가 없어서 출처가 불분명하다).
-6. 프론트와 연동 — `static/index.html`은 11/03에 **10/26 최신본**으로 교체했고(다크 모드는 빠짐) `API_CONFIG.mock: true`다. 자세한 내용은 `../CLAUDE.md`.
+6. 프론트와 연동 — `static/index.html`은 11/03에 10/26 최신본으로 교체했고(다크 모드는 빠짐) 정보처리산업기사 범위로 축소했다. `API_CONFIG.mock: true`다. 앱은 시험 이름을 보내지 않고, 서버가 정보처리산업기사로 고정한다(11/03 구현). 앱은 문항의 `code` 칸을 코드 상자로 보여 준다. 자세한 내용은 `../CLAUDE.md`.
 
 ## 코딩할 때 걸리는 점
 

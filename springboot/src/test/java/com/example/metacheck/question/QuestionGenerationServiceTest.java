@@ -30,8 +30,44 @@ class QuestionGenerationServiceTest {
         }
     }
 
+    private static final PromptTemplates TEMPLATES = new PromptTemplates();
+
+    /** 2차 풀이를 끈 서비스 — 생성 · 게이트 ① ② · 재생성만 본다. */
     private static QuestionGenerationService service(ModelClient client) {
-        return new QuestionGenerationService(new PromptAssembler(new PromptTemplates(), new ExampleBank()), client, () -> 0, () -> new Random(1));
+        return new QuestionGenerationService(new PromptAssembler(TEMPLATES, new ExampleBank()), client, null, () -> 0, () -> new Random(1));
+    }
+
+    /** 2차 풀이를 켠 서비스. */
+    private static QuestionGenerationService verified(ModelClient client) {
+        return new QuestionGenerationService(new PromptAssembler(TEMPLATES, new ExampleBank()), client, new QuestionVerifier(TEMPLATES), () -> 0, () -> new Random(1));
+    }
+
+    /** 생성 요청에는 정해 둔 응답을, 2차 풀이 요청에는 judge 가 만든 답을 돌려준다. 검증은 병렬로 올 수 있어 기록은 동기화한다. */
+    static final class Routed implements ModelClient {
+        final Deque<String> generations = new ArrayDeque<>();
+        final java.util.function.BiFunction<String, Integer, String> judge;   // (검증 요청 글, 몇 번째 검증 호출) → 검증자 응답
+        final List<Request> genRequests = java.util.Collections.synchronizedList(new ArrayList<>());
+        final List<Request> verifyRequests = java.util.Collections.synchronizedList(new ArrayList<>());
+
+        Routed(java.util.function.BiFunction<String, Integer, String> judge, String... generations) {
+            this.judge = judge;
+            this.generations.addAll(List.of(generations));
+        }
+
+        @Override
+        public synchronized Reply invoke(Request request) {
+            if (request.system().startsWith("너는 시험 문제를 검토하는")) {
+                verifyRequests.add(request);
+                return new Reply(judge.apply(request.messages().get(0).text(), verifyRequests.size()), "end_turn");
+            }
+            genRequests.add(request);
+            return new Reply(generations.isEmpty() ? "" : generations.poll(), "end_turn");
+        }
+    }
+
+    /** 검증자가 출제자와 같은 답을 고른다 — 지문에 따라 정답 위치를 알려 준다. */
+    private static String answer(int correct, int stage) {
+        return "{\"correct\": [" + correct + "], \"grounded\": true, \"stage\": " + stage + ", \"issue\": \"\"}";
     }
 
     private static GenerateRequest request(int level, int count) {
@@ -64,6 +100,17 @@ class QuestionGenerationServiceTest {
         assertThat(sent.messages().get(0).role()).isEqualTo("user");
         assertThat(sent.system()).contains("출제 위원").doesNotContain("{{");
         assertThat(sent.maxTokens()).isEqualTo(2000);
+    }
+
+    @Test
+    void 심화만_상위_모델을_쓰고_재생성해도_같은_등급을_쓴다() {
+        Scripted basic = new Scripted();
+        service(basic).generate(request(2, 1));
+        assertThat(basic.requests).isNotEmpty().allMatch(r -> r.tier() == ModelClient.Tier.BASIC);
+
+        Scripted advanced = new Scripted();
+        service(advanced).generate(request(3, 1));
+        assertThat(advanced.requests).hasSize(2).allMatch(r -> r.tier() == ModelClient.Tier.ADVANCED);
     }
 
     @Test
@@ -178,6 +225,120 @@ class QuestionGenerationServiceTest {
         assertThat(r.status()).isEqualTo("pass");
         assertThat(r.questions().get(0).concepts()).hasSize(2);
         assertThat(r.questions().get(0).steps()).hasSize(3);
+    }
+
+    // ───────── 게이트 ③ 2차 풀이 (11/03 Java 에 추가)
+
+    @Test
+    void 이차_풀이에서_검증자가_같은_답을_고르면_통과하고_결과에_남는다() {
+        Routed model = new Routed((user, n) -> answer(1, 1), TestItems.reply(TestItems.item(1)));
+        GenerateResult r = verified(model).generate(request(1, 1));
+
+        assertThat(r.status()).isEqualTo("pass");
+        assertThat(r.questions().get(0).verify()).isEqualTo(new GenerateResult.Verify(true, 1, true, null, null));
+        assertThat(model.verifyRequests).hasSize(1);
+        ModelClient.Request v = model.verifyRequests.get(0);
+        assertThat(v.maxTokens()).isEqualTo(600);
+        assertThat(v.temperature()).isZero();
+        assertThat(v.tier()).isEqualTo(ModelClient.Tier.BASIC);
+        // 검증자에게는 지문 · 보기만 — 정답 · 해설 · 근거 · 오개념은 보내지 않는다
+        String user = v.messages().get(0).text();
+        assertThat(user).contains("{\"q\":\"스택의 정의로 가장 알맞은 것은?\",\"o\":[", "[3단계 - 심화·응용]", "[판정 순서]")
+                .doesNotContain("해설입니다.", "\"a\"", "오개념 0", "<자료>", "{{");
+    }
+
+    @Test
+    void 이차_풀이에서_정답이_다르거나_둘로_보이면_그_문항만_다시_만든다() {
+        ObjectNode other = TestItems.item(1, "큐의 특징으로 알맞은 것은?", TestItems.TAX_OPTIONS, 0);
+        Routed model = new Routed((user, n) -> n == 1 ? answer(2, 1) : answer(0, 1), TestItems.reply(TestItems.item(1)), TestItems.reply(other));
+        GenerateResult r = verified(model).generate(request(1, 1));
+
+        assertThat(r.status()).isEqualTo("pass-after-retry");
+        assertThat(r.attempts().get(0).errors()).containsExactly("③ 정답 불일치 (출제 1, 검증자 2)");
+        assertThat(model.genRequests.get(1).messages().get(2).text()).contains("- 1번째 문항: ③ 정답 불일치 (출제 1, 검증자 2)");
+
+        Routed two = new Routed((user, n) -> "{\"correct\": [1, 3], \"grounded\": false, \"stage\": 1}", TestItems.reply(TestItems.item(1)), TestItems.reply(TestItems.item(1)));
+        GenerateResult r2 = verified(two).generate(request(1, 1));
+        assertThat(r2.status()).isEqualTo("fail");
+        assertThat(r2.attempts().get(0).errors()).containsExactly("③ 정답이 2개 이상으로 보임 (검증자: 1, 3)", "③ 자료 · 원리로 설명되지 않는다고 판단함");
+    }
+
+    @Test
+    void 게이트2에_걸린_문항은_검증_호출을_하지_않는다() {
+        Routed model = new Routed((user, n) -> answer(1, 1), TestItems.reply(broken()), TestItems.reply(TestItems.item(1)));
+        GenerateResult r = verified(model).generate(request(1, 1));
+        assertThat(r.status()).isEqualTo("pass-after-retry");
+        assertThat(model.verifyRequests).hasSize(1);
+    }
+
+    @Test
+    void 단계_판정이_다르면_기록만_하고_통과시킨다() {
+        GenerateResult r = verified(new Routed((user, n) -> answer(1, 3), TestItems.reply(TestItems.item(1)))).generate(request(1, 1));
+        assertThat(r.status()).isEqualTo("pass");
+        assertThat(r.questions().get(0).verify().stage()).isEqualTo(3);
+        assertThat(r.questions().get(0).verify().stageOk()).isFalse();
+    }
+
+    @Test
+    void 검증_응답이_두_번_다_깨지면_검증하지_못한_채_통과시키고_표시한다() {
+        Routed model = new Routed((user, n) -> "죄송합니다", TestItems.reply(TestItems.item(1)));
+        GenerateResult r = verified(model).generate(request(1, 1));
+        assertThat(r.status()).isEqualTo("pass");
+        assertThat(model.verifyRequests).hasSize(2);
+        assertThat(r.questions().get(0).verify()).isEqualTo(new GenerateResult.Verify(false, null, null, null, "검증 응답 형식 오류 — 검증하지 못함"));
+    }
+
+    @Test
+    void 여러_문항은_병렬로_검증하고_문항마다_결과가_맞게_붙는다() {
+        ObjectNode a = TestItems.item(2, "스택의 정의로 가장 알맞은 것은?", TestItems.STACK_OPTIONS, 1);
+        ObjectNode b = TestItems.item(2, "세금이 오를 때 일어나는 일로 알맞은 것은?", TestItems.TAX_OPTIONS, 2);
+        ObjectNode c = TestItems.item(2, "큐의 특징으로 알맞은 것은?", new String[] {"양쪽 끝으로 넣는다", "먼저 넣은 것이 먼저 나온다", "가운데부터 꺼낸다", "정렬해서 넣는다"}, 1);
+        // 세금 문항만 단계를 3으로 판정한다 — 결과가 문항과 엇갈리지 않는지 본다
+        Routed model = new Routed((user, n) -> user.contains("세금") ? answer(2, 3) : answer(1, 2), TestItems.reply(a, b, c));
+        GenerateResult r = verified(model).generate(request(2, 3));
+
+        assertThat(r.status()).isEqualTo("pass");
+        assertThat(model.verifyRequests).hasSize(3);
+        assertThat(r.questions()).extracting(q -> q.q().contains("세금") ? q.verify().stage() == 3 : q.verify().stage() == 2).containsOnly(true);
+    }
+
+    @Test
+    void 이차_풀이_중_모델_호출이_실패하면_감싸지_않고_그대로_올린다() {
+        ObjectNode b = TestItems.item(1, "큐의 특징으로 알맞은 것은?", TestItems.TAX_OPTIONS, 0);
+        ModelClient failing = new Routed((user, n) -> {
+            throw new ModelCallException("throttled", null);
+        }, TestItems.reply(TestItems.item(1), b));
+        org.assertj.core.api.Assertions.assertThatThrownBy(() -> verified(failing).generate(request(1, 2))).isInstanceOf(ModelCallException.class);
+    }
+
+    @Test
+    void 코드_문항은_결과에_코드가_있고_검증과_재생성_요청에도_코드가_들어간다() {
+        ObjectNode code = TestItems.item(2, "다음 C 코드의 출력 결과는?", new String[] {"1", "2", "3", "4"}, 1);
+        code.put("code", "int a[] = {1, 2, 3};\nprintf(\"%d\", a[1]);");
+        code.put("shuffle", false);
+        Routed model = new Routed((user, n) -> user.contains("세금") ? answer(2, 2) : answer(1, 2),
+                TestItems.reply(code, broken()), TestItems.reply(TestItems.item(2, "세금의 효과는?", TestItems.TAX_OPTIONS, 2)));
+        GenerateResult r = verified(model).generate(request(2, 2));
+
+        assertThat(r.questions().get(0).code()).isEqualTo("int a[] = {1, 2, 3};\nprintf(\"%d\", a[1]);");
+        assertThat(r.questions().get(1).code()).isNull();
+        assertThat(model.verifyRequests.get(0).messages().get(0).text()).contains("\"code\":\"int a[] = {1, 2, 3};\\nprintf(\\\"%d\\\", a[1]);\"");
+        assertThat(model.genRequests.get(1).messages().get(2).text()).contains("[이미 낸 문항] 다음 C 코드의 출력 결과는? int a[] = {1, 2, 3}; printf(\"%d\", a[1]);");
+    }
+
+    @Test
+    void 이미_낸_코드_문항은_지문이_같아도_코드가_다르면_겹치지_않는다() {
+        ObjectNode code = TestItems.item(2, "다음 C 코드의 출력 결과는?", new String[] {"1", "2", "3", "4"}, 1);
+        code.put("code", "int a[] = {1, 2, 3};\nprintf(\"%d\", a[1]);");
+        GenerateRequest req = new GenerateRequest(Persona.UNIVERSITY, "자료구조", "스택과 큐", null, new ConceptRef("c1", "스택", "LIFO"), null, 2, 1,
+                List.of("다음 C 코드의 출력 결과는? int x = 7; printf(\"%d\", x % 4);"), null, null);
+        GenerateResult r = service(new Scripted(TestItems.reply(code))).generate(req);
+        assertThat(r.status()).isEqualTo("pass");
+
+        GenerateRequest same = new GenerateRequest(Persona.UNIVERSITY, "자료구조", "스택과 큐", null, new ConceptRef("c1", "스택", "LIFO"), null, 2, 1,
+                List.of("다음 C 코드의 출력 결과는? int a[] = {1, 2, 3}; printf(\"%d\", a[1]);"), null, null);
+        GenerateResult dup = service(new Scripted(TestItems.reply(code), TestItems.reply(code))).generate(same);
+        assertThat(dup.attempts().get(0).errors()).anyMatch(e -> e.contains("너무 비슷함"));
     }
 
     @Test

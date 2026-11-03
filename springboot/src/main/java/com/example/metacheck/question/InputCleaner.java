@@ -10,11 +10,10 @@ final class InputCleaner {
 
     static final int SUBJECT_MAX = 40;   // 앱 입력 칸의 maxlength
     static final int TOPIC_MAX = 60;
-    static final int EXAM_MAX = 40;
     static final int CONCEPT_NAME_MAX = 40;
     static final int CONCEPT_DESC_MAX = 200;
     static final int USER_REQUEST_MAX = 100;   // 사양서: 사용자 요청 100자
-    static final int PREVIOUS_MAX = 300;
+    static final int PREVIOUS_MAX = 1500;       // 코드 문항은 지문 + 코드를 한 줄로 받아 길다 (11/03 300 → 1500)
     static final int MATERIAL_MAX = 8000;       // 사양서에 길이가 없어 비용을 묶어 두려고 정한 값
 
     private static final Pattern LINE_BREAKS = Pattern.compile("[{}\\r\\n\\t]+");

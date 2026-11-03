@@ -25,7 +25,7 @@ const specFile = path.join(ai, '소스', 'aispec-pages.js');
 const bankFile = path.join(ai, '소스', 'bank', 'examples.json');
 const cellsFile = path.join(ai, 'bedrock_12칸', 'prompts12.json');
 const runnerFile = path.join(ai, 'bedrock_12칸', 'run-bedrock.mjs');
-for (const f of [specFile, bankFile, cellsFile, runnerFile]) if (!fs.existsSync(f)) { console.error('없는 파일:', f, '\n--ai 로 ai관련 폴더를 알려 주세요.'); process.exit(1); }
+for (const f of [specFile, bankFile, cellsFile, runnerFile, path.join(ai, '소스', 'exam-units.json')]) if (!fs.existsSync(f)) { console.error('없는 파일:', f, '\n--ai 로 ai관련 폴더를 알려 주세요.'); process.exit(1); }
 
 const write = (rel, text) => { const p = path.join(out, rel); fs.mkdirSync(path.dirname(p), { recursive: true }); fs.writeFileSync(p, text, 'utf8'); console.log('쓰기', rel, text.length + '자'); };
 
@@ -33,11 +33,15 @@ const write = (rel, text) => { const p = path.join(out, rel); fs.mkdirSync(path.
 const src = fs.readFileSync(specFile, 'utf8');
 const grab = (name) => { const m = src.match(new RegExp('const ' + name + ' = `([\\s\\S]*?)`;')); if (!m) throw new Error('사양서에서 못 찾음: ' + name); return m[1]; };
 const tpl = (name) => eval('`' + grab(name) + '`').trim(); // 템플릿 리터럴의 \\" 같은 이스케이프를 풀어서 가져옴 (신뢰하는 팀 파일)
-const pieces = { sysPrompt: 'system.txt', spU: 'persona-university.txt', spC: 'persona-cert.txt', lv1: 'level-1.txt', lv2: 'level-2.txt', lv3: 'level-3.txt', outFormat: 'output-format.txt' };
+const pieces = { sysPrompt: 'system.txt', spU: 'persona-university.txt', spC: 'persona-cert.txt', lv1: 'level-1.txt', lv2: 'level-2.txt', lv3: 'level-3.txt', outFormat: 'output-format.txt',
+  examName: 'exam-name.txt', examScope: 'exam-scope.txt', verifySystem: 'verify-system.txt', levelCriteria: 'level-criteria.txt' };   // 11/03: 시험 · 출제 범위 · 2차 풀이
 for (const [k, f] of Object.entries(pieces)) write(`src/main/resources/prompts/${f}`, tpl(k) + '\n');
+// 2차 풀이 USER — assemble-bedrock.js 와 같이 {{변수}} 줄 끝의 '# 설명'(문서용 주석)을 뺀다
+write('src/main/resources/prompts/verify-user.txt', tpl('verify').split('\n').map((ln) => (ln.includes('{{') ? ln.replace(/\s+#.*$/, '') : ln)).join('\n') + '\n');
 
-// ───── 2) 예시 은행
+// ───── 2) 예시 은행 · 정보처리산업기사 단원표(11/03 — 과목 · 주요항목 · 세부항목과 단원별 개념 3개)
 write('src/main/resources/prompts/examples.json', fs.readFileSync(bankFile, 'utf8'));
+write('src/main/resources/prompts/exam-units.json', fs.readFileSync(path.join(ai, '소스', 'exam-units.json'), 'utf8'));
 
 // ───── 3) 프롬프트 골든 — 12칸 중 대학생 기초 · 대학생 심화 · 수험생 실전 · 수험생 심화
 const order = ['A1', 'B1', 'A2', 'B2', 'A3', 'B3', 'C1', 'D1', 'C2', 'D2', 'C3', 'D3'];   // assemble-bedrock.js 의 칸 순서 = 예시를 돌리는 seed
@@ -56,7 +60,7 @@ const cells = data.cells.filter((c) => pick.includes(c.id)).map((c) => {
 write('src/test/resources/golden/cells.json', JSON.stringify(cells, null, 2));
 
 // ───── 4) 판정 골든 — 예시 은행 문항 6개를 14가지로 망가뜨린 변형에 Node 러너가 내린 판정
-const { gate1, gate2, similar, detectFixedOrder, itemText } = await import(pathToFileURL(runnerFile).href);
+const { gate1, gate2, similar, detectFixedOrder, itemText, sentences, stemLine, buildVerifyRequest } = await import(pathToFileURL(runnerFile).href);
 const bank = JSON.parse(fs.readFileSync(bankFile, 'utf8')).entries;
 const pickIds = [];
 for (const persona of ['UNIVERSITY', 'CERT_EXAM']) for (const lv of [1, 2, 3]) pickIds.push(bank.find((e) => e.persona === persona && e.lv === lv).id);
@@ -76,6 +80,18 @@ const MUT = {
   threeOptions: (it) => ({ ...it, o: it.o.slice(0, 3) }),
   missingEv: (it) => { const c = { ...it }; delete c.ev; return c; },
   conceptsNotList: (it) => ({ ...it, concepts: '하나' }),
+  // 11/03 규칙
+  codeField: (it) => ({ ...it, code: '#include <stdio.h>\nint main(void) {\n    printf("%d", s.v);\n    return 0;\n}' }),
+  codeNotString: (it) => ({ ...it, code: 5 }),
+  codeNull: (it) => ({ ...it, code: null }),
+  dottedQuestion: (it) => ({ ...it, q: 'System.out.println(a.b) 와 s.dept 를 쓴 코드의 결과는?' }),
+  numberWords: (it) => ({ ...it, x: it.x + ' 이 과정은 3번 반복되고 4번 발생한다.' }),
+  optionRef: (it) => ({ ...it, x: it.x + ' 2번이 정답이다.' }),
+  optionPair: (it) => ({ ...it, x: it.x + ' 1번과 3번은 틀리다.' }),
+  fillerSteps: (it) => ({ ...it, steps: it.steps.map(() => '보기를 하나씩 대조한다') }),
+  shortStep: (it) => ({ ...it, steps: it.steps.map(() => 'ㅁ') }),
+  trueDistractor: (it) => { const d = { ...it.distractors }; d[Object.keys(d)[0]] = '옳은 설명 — 정의'; return { ...it, distractors: d }; },
+  shortDistractor: (it) => { const d = { ...it.distractors }; d[Object.keys(d)[0]] = 'ㅁ'; return { ...it, distractors: d }; },
 };
 const gates = [];
 for (const b of base) for (const [name, f] of Object.entries(MUT)) {
@@ -98,6 +114,20 @@ const sims = [];
 for (let i = 0; i < texts.length; i++) for (let j = i; j < texts.length; j++) sims.push({ a: texts[i], b: texts[j], value: similar(texts[i], texts[j]) });
 sims.push({ a: texts[0], b: texts[0].replace('것은', '것이'), value: similar(texts[0], texts[0].replace('것은', '것이')) });
 sims.push({ a: '', b: texts[0], value: similar('', texts[0]) });
-write('src/test/resources/golden/parity.json', JSON.stringify({ gates, fixed, sims }, null, 1));
+// 코드 문항: itemText 에 코드가 들어간다 (11/03)
+const codeItems = bank.filter((e) => e.item.code).map((e) => e.item);
+for (const it of codeItems) texts.push(itemText(it));
+for (let i = 0; i < codeItems.length - 1; i++) sims.push({ a: itemText(codeItems[i]), b: itemText(codeItems[i + 1]), value: similar(itemText(codeItems[i]), itemText(codeItems[i + 1])) });
+const itemTexts = bank.map((e) => ({ id: e.id, item: e.item, text: itemText(e.item), stem: stemLine(e.item) }));
+// 문장 수 세기 (11/03 규칙: 마침표 · 물음표 뒤에 빈칸이 없으면 문장 끝이 아님)
+const sentenceInputs = ['A이다. B이다.', '가격이 3.5% 오르면?', 'System.out.println(a.b) 의 결과는?', 'SELECT s.name FROM t s; 결과는?', '정말... 그런가? 그렇다!', '첫째.둘째. 셋째', '', '1. 첫째 2. 둘째', 'a != b 이면 참인가?', ...bank.map((e) => e.item.q)];
+const sentenceCases = sentenceInputs.map((t) => ({ text: t, value: sentences(t) }));
+// 2차 풀이 요청 글 — Java 의 QuestionVerifier 가 같은 글을 만들어야 한다
+const vcfg = data.meta.verify;
+const verifyCases = bank.filter((e) => ['U1-a', 'C2-b', 'C3-c', 'C1-b'].includes(e.id)).map((e) => {
+  const cell = { subject: e.subject, levelLabel: ['', '기초', '실전', '심화'][e.lv], lv: e.lv };
+  return { id: e.id, subject: cell.subject, level: e.lv, item: e.item, user: buildVerifyRequest(cell, e.item, vcfg).messages[0].content[0].text, system: vcfg.system, inference: vcfg.inferenceConfig };
+});
+write('src/test/resources/golden/parity.json', JSON.stringify({ gates, fixed, sims, itemTexts, sentenceCases, verifyCases }, null, 1));
 
 console.log(`\n완료 → ${out}\n다음: gradlew test --tests "com.example.metacheck.question.*"  (JAVA_HOME 지정 필요, springboot/CLAUDE.md 참고)`);

@@ -20,20 +20,32 @@ public record GenerateResult(
         List<Skipped> skipped,
         List<String> exampleIds) {
 
-    /** 검사를 통과하고 보기를 섞은 문항. distractors 의 키는 섞은 뒤의 보기 번호(정답 제외). */
+    /**
+     * 검사를 통과하고 보기를 섞은 문항. distractors 의 키는 섞은 뒤의 보기 번호(정답 제외).
+     * code 는 지문에 딸린 코드 · SQL · 표(줄바꿈 그대로, 없으면 null). verify 는 게이트 ③ 2차 풀이 결과(검증을 끄면 null).
+     */
     public record GeneratedQuestion(
             String c,
             int lv,
             List<String> concepts,
             List<String> steps,
             String q,
+            String code,
             List<String> o,
             int a,
             Map<Integer, String> distractors,
             String x,
             String ev,
             String shuffleMode,
-            String shuffleNote) {
+            String shuffleNote,
+            Verify verify) {
+    }
+
+    /**
+     * 2차 풀이 결과. verified=false 면 검증자 응답이 두 번 다 형식에 맞지 않아 검증하지 못하고 통과시킨 문항이다(note 에 이유).
+     * stage 는 검증자가 판정한 단계, stageOk 는 요청 단계와 같은지 — 다르면 기록만 한다(사양서 8쪽).
+     */
+    public record Verify(boolean verified, Integer stage, Boolean stageOk, String issue, String note) {
     }
 
     public record Attempt(int n, long ms, List<String> errors) {

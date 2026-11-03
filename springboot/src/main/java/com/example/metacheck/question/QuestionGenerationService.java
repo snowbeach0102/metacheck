@@ -4,18 +4,23 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Random;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.function.IntSupplier;
 import java.util.function.Supplier;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import tools.jackson.databind.JsonNode;
 
 /**
- * 문제 생성 한 번의 흐름 — 생성 → 게이트 ① 형식 · ② 규칙 · 중복 검사 → 실패한 문항만 1회 재생성 → 보기 섞기.
- * ai관련/소스/bedrock_out/run-bedrock.mjs 의 runCell 에서 ③ 2차 풀이(검증 호출)만 뺀 것이다.
+ * 문제 생성 한 번의 흐름 — 생성 → 게이트 ① 형식 · ② 규칙 · 중복 검사 → ③ 2차 풀이 → 실패한 문항만 1회 재생성 → 보기 섞기.
+ * ai관련/bedrock_12칸/run-bedrock.mjs 의 runCell 과 같은 흐름이다. ③은 설정 metacheck.ai.verify 로 끌 수 있다(기본 켬).
  */
 @Service
 public class QuestionGenerationService {
@@ -25,20 +30,29 @@ public class QuestionGenerationService {
     static final int TOKENS_PER_QUESTION = 2000;
     static final int MAX_TOKENS = 8000;
     static final double TEMPERATURE = 0.7;
+    // 2차 풀이는 문항마다 병렬로 보낸다(사양서 8쪽). 호출 대기가 대부분이라 작은 공용 풀로 충분하다
+    private static final ExecutorService VERIFY_POOL = Executors.newFixedThreadPool(8, r -> {
+        Thread t = new Thread(r, "question-verify");
+        t.setDaemon(true);
+        return t;
+    });
 
     private final PromptAssembler assembler;
     private final ModelClient client;
+    private final QuestionVerifier verifier;   // null 이면 ③ 2차 풀이를 하지 않는다
     private final IntSupplier exampleSeed;
     private final Supplier<Random> random;
 
     @Autowired
-    public QuestionGenerationService(PromptAssembler assembler, ModelClient client) {
-        this(assembler, client, () -> ThreadLocalRandom.current().nextInt(1000), ThreadLocalRandom::current);
+    public QuestionGenerationService(PromptAssembler assembler, ModelClient client, QuestionVerifier verifier,
+            @Value("${metacheck.ai.verify:true}") boolean verify) {
+        this(assembler, client, verify ? verifier : null, () -> ThreadLocalRandom.current().nextInt(1000), ThreadLocalRandom::current);
     }
 
-    QuestionGenerationService(PromptAssembler assembler, ModelClient client, IntSupplier exampleSeed, Supplier<Random> random) {
+    QuestionGenerationService(PromptAssembler assembler, ModelClient client, QuestionVerifier verifier, IntSupplier exampleSeed, Supplier<Random> random) {
         this.assembler = assembler;
         this.client = client;
+        this.verifier = verifier;
         this.exampleSeed = exampleSeed;
         this.random = random;
     }
@@ -47,23 +61,30 @@ public class QuestionGenerationService {
         PromptInput in = request.toInput();
         PromptAssembler.Prompt prompt = assembler.build(in, exampleSeed.getAsInt());
         int maxTokens = Math.min(TOKENS_PER_QUESTION * in.count(), MAX_TOKENS);
+        // 팀 결정: 직업군과 상관없이 3단계(심화)만 상위 모델. 2차 풀이도 같은 등급(사양서: 1 · 2단계 경량, 심화 상위)
+        ModelClient.Tier tier = in.level() == 3 ? ModelClient.Tier.ADVANCED : ModelClient.Tier.BASIC;
 
         List<ModelClient.Turn> messages = List.of(new ModelClient.Turn("user", prompt.user()));
         List<JsonNode> accepted = new ArrayList<>();
+        List<QuestionVerifier.Verdict> verdicts = new ArrayList<>();
         List<GenerateResult.Attempt> attempts = new ArrayList<>();
         List<GenerateResult.Skipped> skipped = List.of();
 
         for (int n = 1; n <= MAX_ATTEMPTS; n++) {
             long t0 = System.currentTimeMillis();
-            ModelClient.Reply reply = client.invoke(new ModelClient.Request(prompt.system(), messages, maxTokens, TEMPERATURE));
+            ModelClient.Reply reply = client.invoke(new ModelClient.Request(prompt.system(), messages, maxTokens, TEMPERATURE, tier));
             String text = reply == null ? null : reply.text();
             Judged j = judge(Json.parseModelJson(text), in, accepted);
+            if (verifier != null) {
+                verifyPassed(j, in, tier);
+            }
             for (Judged.Item item : j.items) {
                 if (accepted.size() >= in.count()) {
                     break;
                 }
                 if (item.errors.isEmpty()) {
                     accepted.add(item.node);
+                    verdicts.add(item.verdict);
                 }
             }
             attempts.add(new GenerateResult.Attempt(n, System.currentTimeMillis() - t0, j.allErrors()));
@@ -94,26 +115,54 @@ public class QuestionGenerationService {
         }
 
         Random rnd = random.get();
-        List<GenerateResult.GeneratedQuestion> questions = accepted.stream().map(item -> toQuestion(item, in, rnd)).toList();
-        return new GenerateResult(status, in.count(), questions, List.copyOf(attempts), skipped, prompt.exampleIds());
+        List<GenerateResult.GeneratedQuestion> questions = new ArrayList<>();
+        for (int i = 0; i < accepted.size(); i++) {
+            questions.add(toQuestion(accepted.get(i), verdicts.get(i), in, rnd));
+        }
+        return new GenerateResult(status, in.count(), List.copyOf(questions), List.copyOf(attempts), skipped, prompt.exampleIds());
     }
 
-    private static GenerateResult.GeneratedQuestion toQuestion(JsonNode item, PromptInput in, Random rnd) {
+    /** 게이트 ① · ②를 통과한 문항만 2차 풀이에 보낸다(걸린 문항에 검증 호출을 낭비하지 않는다). 여러 문항이면 병렬로. */
+    private void verifyPassed(Judged j, PromptInput in, ModelClient.Tier tier) {
+        List<Judged.Item> todo = j.items.stream().filter(i -> i.errors.isEmpty()).toList();
+        List<QuestionVerifier.Verdict> results;
+        if (todo.size() <= 1) {
+            results = todo.stream().map(i -> verifier.verify(client, in, i.node, tier)).toList();
+        } else {
+            List<CompletableFuture<QuestionVerifier.Verdict>> futures = todo.stream()
+                    .map(i -> CompletableFuture.supplyAsync(() -> verifier.verify(client, in, i.node, tier), VERIFY_POOL)).toList();
+            try {
+                results = futures.stream().map(CompletableFuture::join).toList();
+            } catch (CompletionException e) {
+                // 모델 호출 실패(ModelCallException → 502)를 감싸지 않고 그대로 올린다
+                throw e.getCause() instanceof RuntimeException re ? re : e;
+            }
+        }
+        for (int i = 0; i < todo.size(); i++) {
+            todo.get(i).verdict = results.get(i);
+            todo.get(i).errors.addAll(results.get(i).errors());
+        }
+    }
+
+    private static GenerateResult.GeneratedQuestion toQuestion(JsonNode item, QuestionVerifier.Verdict verdict, PromptInput in, Random rnd) {
         OptionShuffler.Shuffled s = OptionShuffler.shuffle(item, rnd);
         JsonNode c = item.get("c");
+        String code = QuestionGates.code(item);
         return new GenerateResult.GeneratedQuestion(
                 c != null && c.isString() && !c.asString().isBlank() ? c.asString() : in.concept().id(),
                 in.level(),
                 strings(item.get("concepts")),
                 strings(item.get("steps")),
                 item.get("q").asString(),
+                code.isBlank() ? null : code,
                 s.o(),
                 s.a(),
                 s.distractors(),
                 item.get("x").asString(),
                 item.get("ev").asString(),
                 s.mode(),
-                s.note().isEmpty() ? null : s.note());
+                s.note().isEmpty() ? null : s.note(),
+                verdict == null ? null : verdict.toResult());
     }
 
     private static List<String> strings(JsonNode array) {
@@ -128,10 +177,11 @@ public class QuestionGenerationService {
         static final class Item {
             final JsonNode node;
             final List<String> errors;
+            QuestionVerifier.Verdict verdict;
 
             Item(JsonNode node, List<String> errors) {
                 this.node = node;
-                this.errors = errors;
+                this.errors = new ArrayList<>(errors);
             }
         }
 
@@ -167,7 +217,7 @@ public class QuestionGenerationService {
             return j;
         }
 
-        // 겹침 비교 대상: 호출자가 알려 준 이미 낸 문항(지문만) + 이번 호출에서 이미 통과한 문항 + 이번 응답에서 먼저 통과한 문항
+        // 겹침 비교 대상: 호출자가 알려 준 이미 낸 문항(지문 + 코드 한 줄) + 이번 호출에서 이미 통과한 문항 + 이번 응답에서 먼저 통과한 문항
         List<String> seenQuestionTexts = new ArrayList<>(in.previousQuestions());
         List<String> seenItemTexts = new ArrayList<>();
         accepted.forEach(a -> seenItemTexts.add(QuestionGates.itemText(a)));
@@ -202,9 +252,11 @@ public class QuestionGenerationService {
         for (String seen : seenItemTexts) {
             worst = Math.max(worst, QuestionGates.similar(text, seen));
         }
-        // 호출자가 준 이미 낸 문항은 지문뿐이라 지문끼리 비교한다 (보기까지 합치면 유사도가 희석돼 놓친다)
+        // 호출자가 준 이미 낸 문항은 지문(+ 코드)뿐이라 지문 + 코드끼리 비교한다 (보기까지 합치면 유사도가 희석돼 놓친다).
+        // 호출자 글은 입력 정리(중괄호 · 줄바꿈 제거)를 거쳤으므로 이쪽도 같게 정리해서 비교한다
+        String stem = InputCleaner.cleanLine(QuestionGates.stemLine(item), InputCleaner.PREVIOUS_MAX);
         for (String prev : previousQuestionTexts) {
-            worst = Math.max(worst, QuestionGates.similar(item.get("q").asString(), prev));
+            worst = Math.max(worst, QuestionGates.similar(stem, prev));
         }
         if (worst >= QuestionGates.DUP) {
             errors.add("다른 문항과 지문 · 보기가 너무 비슷함 (유사도 " + String.format(Locale.ROOT, "%.2f", worst) + ")");
@@ -251,7 +303,7 @@ public class QuestionGenerationService {
         }
         if (!accepted.isEmpty()) {
             lines.add("이미 통과한 문항은 다시 쓰지 않고, 아래 문항과 겹치지 않게 한다.");
-            accepted.forEach(a -> lines.add("[이미 낸 문항] " + a.get("q").asString()));
+            accepted.forEach(a -> lines.add("[이미 낸 문항] " + QuestionGates.stemLine(a)));
         }
         lines.add("문제가 있는 문항만 고쳐서 questions 에 " + need + "개를 담아, 같은 형식의 JSON 하나만 다시 출력하라.");
         return String.join("\n", lines);

@@ -11,8 +11,10 @@ import org.junit.jupiter.api.Test;
 
 class MockModelClientTest {
 
+    private static final PromptTemplates TEMPLATES = new PromptTemplates();
+    // 2차 풀이까지 켠 상태 — 가짜 모델은 검증 요청에 자기가 낸 정답 위치를 답한다
     private final QuestionGenerationService service = new QuestionGenerationService(
-            new PromptAssembler(new PromptTemplates(), new ExampleBank()), new MockModelClient(), () -> 0, () -> new Random(3));
+            new PromptAssembler(TEMPLATES, new ExampleBank()), new MockModelClient(), new QuestionVerifier(TEMPLATES), () -> 0, () -> new Random(3));
 
     private GenerateResult run(Persona persona, int level, int count) {
         return service.generate(new GenerateRequest(persona, "정보처리기사 필기", "데이터베이스", persona == Persona.CERT_EXAM ? "정보처리기사 필기" : null,
@@ -29,6 +31,7 @@ class MockModelClientTest {
                     assertThat(r.status()).as(where + " " + r.attempts()).isEqualTo("pass");
                     assertThat(r.questions()).as(where).hasSize(count);
                     assertThat(r.attempts()).as(where).hasSize(1);
+                    assertThat(r.questions()).as(where).allMatch(q -> q.verify().verified() && q.verify().stageOk());
                 }
             }
         }

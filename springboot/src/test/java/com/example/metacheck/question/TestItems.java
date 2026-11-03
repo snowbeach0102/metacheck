@@ -28,7 +28,7 @@ final class TestItems {
         }
         ArrayNode steps = it.putArray("steps");
         for (int i = 0; i < (lv == 1 ? 0 : lv == 2 ? 1 : 3); i++) {
-            steps.add("단계" + i);
+            steps.add("개념을 적용한 추론 단계 " + i);
         }
         it.put("q", q);
         ArrayNode o = it.putArray("o");

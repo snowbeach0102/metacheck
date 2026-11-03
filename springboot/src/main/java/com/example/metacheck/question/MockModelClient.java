@@ -12,8 +12,9 @@ import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 개발용 가짜 모델. 요청의 [개념] · [단계] · [문항 수] 줄을 읽어, 검사(게이트)를 통과하는 모양의 문항 JSON 을 돌려준다.
+ * 2차 풀이(검증) 요청에는 자기가 낸 "[모의 N]" 문항의 정답 위치를 답한다.
  * 내용은 일부러 뜻 없는 글자를 섞은 "[모의]" 문장이라 실제 문제로 오해할 일이 없다.
- * 실제 Bedrock 연결 전까지 기본값이며, 설정 metacheck.ai.client=mock (없으면 mock) 일 때만 켜진다.
+ * 기본값이며, 설정 metacheck.ai.client=mock (없으면 mock) 일 때만 켜진다.
  */
 @Component
 @ConditionalOnProperty(name = "metacheck.ai.client", havingValue = "mock", matchIfMissing = true)
@@ -23,11 +24,16 @@ public class MockModelClient implements ModelClient {
     private static final Pattern COUNT = Pattern.compile("\\[문항 수] (\\d+)");
     private static final Pattern CONCEPT = Pattern.compile("\\[개념] (.+?)(?: — .*?)?   \\(개념 id: (.+?)\\)");
     private static final Pattern RELATED = Pattern.compile("\\[관련 개념] (.+?)(?: — |$| / )", Pattern.MULTILINE);
+    private static final Pattern MOCK_NO = Pattern.compile("\\[모의 (\\d+)]");
 
     @Override
     public Reply invoke(Request request) {
         String user = request.messages().get(0).text();
         int lv = find(LEVEL, user, 1);
+        if (user.contains("[할 일]")) {   // 2차 풀이 요청 (verify-user.txt) — 문항 i 의 정답은 i % 4 로 냈다
+            int no = find(MOCK_NO, user, 1);
+            return new Reply("{\"correct\": [" + (no - 1) % 4 + "], \"grounded\": true, \"stage\": " + lv + ", \"issue\": \"\"}", "end_turn");
+        }
         int count = find(COUNT, user, 1);
         Matcher cm = CONCEPT.matcher(user);
         String name = cm.find() ? cm.group(1) : "개념";

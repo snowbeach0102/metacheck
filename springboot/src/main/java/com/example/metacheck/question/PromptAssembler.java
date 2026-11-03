@@ -13,7 +13,7 @@ import tools.jackson.databind.node.ObjectNode;
 
 /**
  * 사양서 4장의 SYSTEM · USER 프롬프트를 조립한다 (ai관련/소스/assemble-bedrock.js 의 build 와 같은 규칙).
- * SYSTEM = 고정 템플릿 + 역할 사양 + (단계 사양 + 역할별 형식) + 예시 2개 + 출력 형식, USER = 과목 · 개념 · 단계 줄.
+ * SYSTEM = 고정 템플릿 + 역할 사양 + (수험생만) 출제 범위 + (단계 사양 + 역할별 형식) + 예시 2개 + 출력 형식, USER = 과목 · 개념 · 단계 줄.
  */
 @Component
 public class PromptAssembler {
@@ -26,10 +26,12 @@ public class PromptAssembler {
             "정의 · 특징을 직접 묻기 — 예) \"~의 정의로 가장 알맞은 것은?\"",
             "사례에 개념 적용 · 유사 개념 구분 — 예) \"다음 상황에서 ~는 얼마인가?\"",
             "복합 사례에서 여러 개념을 연결해 풀이 — 예) \"다음 사례에 대한 올바른 판단은?\""};
+    // 11/03 시험형(사용자 결정): 1단계 정의 · 특징, 2단계 코드 · SQL · 계산 적용, 3단계 여러 개념을 엮은 코드 · SQL · 사례
     private static final String[] FORMAT_CERT = {null,
-            "정의 · 구성요소를 문장형으로 — 예) \"~에 대한 설명으로 옳은 것은?\"",
-            "유사 개념 · 조건을 기출 문장형으로 구분 — 예) \"다음 중 옳지 않은 것은?\"",
-            "복합 사례의 판단과 근거 고르기 — 예) \"옳은 판단과 근거를 고른 것은?\""};
+            "정의 · 특징 · 구성요소를 문장형으로 — 예) \"~에 대한 설명으로 옳은 것은?\" / \"옳지 않은 것은?\"",
+            "코드 · SQL · 계산 · 짧은 사례에 적용해 결과 구하기 — 예) \"다음 코드의 출력 결과는?\"",
+            "여러 개념을 엮은 코드 · SQL · 사례를 끝까지 풀기 — 예) \"다음 프로그램의 출력 결과는?\""};
+    private static final Pattern EXAM_SCOPE_LINE = Pattern.compile("^\\{\\{exam_scope\\}\\}.*\\n", Pattern.MULTILINE);
 
     /** 조립 결과. exampleIds 는 쓰인 예시 은행 항목 id (기록용). */
     public record Prompt(String system, String user, List<String> exampleIds, boolean exampleFallback) {
@@ -55,6 +57,9 @@ public class PromptAssembler {
 
         String system = templates.system();
         system = replaceLine(system, "persona_spec", templates.persona(in.persona()));
+        // 수험생만 출제 범위 블록, 대학생은 그 줄을 통째로 뺀다
+        String scope = in.persona() == Persona.CERT_EXAM ? templates.examScope() + "\n\n" : "";
+        system = EXAM_SCOPE_LINE.matcher(system).replaceFirst(Matcher.quoteReplacement(scope));
         system = replaceLine(system, "level_spec", levelSpec);
         system = replaceLine(system, "level_example", exampleText(picked.entries()));
         system = replaceLine(system, "output_format", templates.outputFormat());

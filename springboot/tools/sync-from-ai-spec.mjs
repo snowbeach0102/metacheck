@@ -4,6 +4,7 @@
 //   2) src/main/resources/prompts/examples.json   예시 은행 (few-shot)
 //   3) src/test/resources/golden/cells.json       Node 조립기가 만든 프롬프트 4칸 (PromptAssemblerTest 가 글자 단위로 비교)
 //   4) src/test/resources/golden/parity.json      Node 러너(run-bedrock.mjs)의 gate · 섞기 · 유사도 판정 (NodeParityTest 가 비교)
+//   5) src/test/resources/golden/stress.json      모의 출제 스트레스 문항 50개(stress-items.cjs)에 Node 규칙이 내린 판정 (StressParityTest 가 비교)
 //
 // 쓰는 때: 사양서나 Node 러너를 고쳐서 Java 쪽과 어긋났을 때. 자세한 절차는 springboot/CLAUDE.md 의 "사양서와 맞추기".
 //   node tools/sync-from-ai-spec.mjs [--ai <ai관련 폴더>] [--out <쓸 프로젝트 폴더>]
@@ -13,6 +14,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
+import { createRequire } from 'node:module';
 
 const here = path.dirname(fileURLToPath(import.meta.url));
 const project = path.resolve(here, '..');
@@ -60,7 +62,7 @@ const cells = data.cells.filter((c) => pick.includes(c.id)).map((c) => {
 write('src/test/resources/golden/cells.json', JSON.stringify(cells, null, 2));
 
 // ───── 4) 판정 골든 — 예시 은행 문항 6개를 14가지로 망가뜨린 변형에 Node 러너가 내린 판정
-const { gate1, gate2, similar, detectFixedOrder, itemText, sentences, stemLine, buildVerifyRequest } = await import(pathToFileURL(runnerFile).href);
+const { gate1, gate2, similar, detectFixedOrder, itemText, sentences, stemLine, buildVerifyRequest, checkItem } = await import(pathToFileURL(runnerFile).href);
 const bank = JSON.parse(fs.readFileSync(bankFile, 'utf8')).entries;
 const pickIds = [];
 for (const persona of ['UNIVERSITY', 'CERT_EXAM']) for (const lv of [1, 2, 3]) pickIds.push(bank.find((e) => e.persona === persona && e.lv === lv).id);
@@ -129,5 +131,17 @@ const verifyCases = bank.filter((e) => ['U1-a', 'C2-b', 'C3-c', 'C1-b'].includes
   return { id: e.id, subject: cell.subject, level: e.lv, item: e.item, user: buildVerifyRequest(cell, e.item, vcfg).messages[0].content[0].text, system: vcfg.system, inference: vcfg.inferenceConfig };
 });
 write('src/test/resources/golden/parity.json', JSON.stringify({ gates, fixed, sims, itemTexts, sentenceCases, verifyCases }, null, 1));
+
+// ───── 5) 모의 출제 스트레스 문항(11/03) — 정상 22 · 모델 실수 20 · 규칙이 못 잡는 종류 8 에 Node 규칙이 내린 판정. StressParityTest 가 Java 도 똑같이 내는지 본다
+const stressFile = path.join(ai, '소스', 'stress-items.cjs');
+if (!fs.existsSync(stressFile)) { console.error('없는 파일:', stressFile); process.exit(1); }
+const { good: sGood, flawed: sFlawed, gaps: sGaps, buildItem, lvOf } = createRequire(import.meta.url)(stressFile);
+const sById = Object.fromEntries(sGood.map((g) => [g.id, g]));
+const stress = [
+  ...sGood.map((g) => ({ id: g.id, kind: 'good', lv: g.lv, item: g.item, seen: [], errors: checkItem(g.item, { lv: g.lv }, []) })),
+  ...sFlawed.map((f) => { const item = buildItem(f), seen = f.partner ? [sById[f.partner].item] : []; return { id: f.id, kind: 'flawed', lv: lvOf(f), item, seen, errors: checkItem(item, { lv: lvOf(f) }, seen) }; }),
+  ...sGaps.map((f) => { const item = buildItem(f); return { id: f.id, kind: 'gap', lv: lvOf(f), item, seen: [], errors: checkItem(item, { lv: lvOf(f) }, []) }; }),
+];
+write('src/test/resources/golden/stress.json', JSON.stringify(stress, null, 1));
 
 console.log(`\n완료 → ${out}\n다음: gradlew test --tests "com.example.metacheck.question.*"  (JAVA_HOME 지정 필요, springboot/CLAUDE.md 참고)`);

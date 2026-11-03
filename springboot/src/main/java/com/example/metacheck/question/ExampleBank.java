@@ -47,18 +47,23 @@ public class ExampleBank {
     }
 
     /**
-     * ① 요청 개념 · 관련 개념과 태그가 겹치는 예시는 뺀다 ② 대학생은 같은 과목 예시를 뒤로 미룬다
+     * ① 요청 개념 · 관련 개념과 태그가 겹치는 예시는 뺀다 ② 대학생은 같은 과목 예시를 뒤로 미루고, 수험생은 반대로 같은 과목 예시를 앞에 둔다
      * ③ 남은 것을 seed 로 돌려 쓴다 ④ 겹치지 않는 예시가 모자라면 겹치는 것으로 채우되 fallback 표시.
      */
     public Picked pick(Persona persona, int lv, List<String> conceptNames, String subject, int seed, int n) {
         List<Entry> cell = entries.stream().filter(e -> e.persona() == persona && e.lv() == lv).toList();
         List<Entry> ok = cell.stream().filter(e -> !collides(e, conceptNames)).toList();
+        // 대학생은 같은 과목을 뒤로 (같은 상황 · 수치를 베끼는 일 방지), 수험생은 같은 과목(시험 과목)을 앞으로 —
+        // 그 과목의 코드 · SQL · 계산 형식을 보여 주려고 (11/03). 과목이 맞는 예시가 없으면 ok 전체를 돌려 쓴다.
+        List<Entry> sameSubject = ok.stream().filter(e -> e.subject().equals(subject)).toList();
+        List<Entry> otherSubject = ok.stream().filter(e -> !e.subject().equals(subject)).toList();
         List<List<Entry>> tiers = new ArrayList<>();
         if (persona == Persona.UNIVERSITY) {
-            tiers.add(ok.stream().filter(e -> !e.subject().equals(subject)).toList());
-            tiers.add(ok.stream().filter(e -> e.subject().equals(subject)).toList());
+            tiers.add(otherSubject);
+            tiers.add(sameSubject);
         } else {
-            tiers.add(ok);
+            tiers.add(sameSubject);
+            tiers.add(otherSubject);
         }
         tiers.add(cell.stream().filter(e -> !ok.contains(e)).toList());
 

@@ -232,7 +232,7 @@ public class QuestionGenerationService {
     }
 
     /** 문항 하나의 게이트 ① · ② + 중복 검사 → 오류 목록 (비면 통과). */
-    private static List<String> check(JsonNode item, int lv, List<String> previousQuestionTexts, List<String> seenItemTexts) {
+    static List<String> check(JsonNode item, int lv, List<String> previousQuestionTexts, List<String> seenItemTexts) {   // 테스트(StressParityTest)가 Node 판정과 비교하려고 패키지 공개
         if (item == null || !item.isObject()) {
             return List.of("문항이 객체가 아님");
         }

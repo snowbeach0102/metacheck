@@ -1,0 +1,11 @@
+# 비밀 값 · 열쇠 파일 — 절대 올리지 말 것 (DB 비밀번호 · AI 게이트웨이 키 `LLM_API_KEY` · 서버 주소 · .pem)
+# springboot/.gitignore 의 `/config/*`(DB 설정 파일)에 더해, 저장소 어디에 두어도 막는 일반 규칙.
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.jks
+*.keystore
+.aws/
+*credentials*

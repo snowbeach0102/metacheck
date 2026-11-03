@@ -41,3 +41,6 @@ out/
 !/config/*.example
 /application.properties
 /application-*.properties
+
+### 샘플 뽑기 결과 (tools/make-samples.mjs) — 호출마다 요금이 든 결과라 지우지 않게 build/ 밖에 두고, 팀에 보일 것만 골라 복사한다 ###
+/samples/

@@ -1,25 +1,27 @@
 # springboot — 백엔드 작업 인수인계
 
-> 최종 갱신: 2026-11-03(화) · 이 문서는 **사람과 Claude가 같이 읽는다.** 처음 보는 Claude는 위에서부터 읽으면 바로 이어서 작업할 수 있다.
-> 비밀번호 · IP · 키 파일 경로는 일부러 적지 않았다. 필요하면 사용자에게 물어볼 것.
+> 최종 갱신: 2026-11-04(수) · 이 문서는 **사람과 Claude가 같이 읽는다.** 처음 보는 Claude는 위에서부터 읽으면 바로 이어서 작업할 수 있다.
+> 비밀번호 · IP(AI 게이트웨이 주소 포함) · API 키 · 키 파일 경로는 일부러 적지 않았다. 필요하면 사용자에게 물어볼 것.
 
 ## 한눈에 보기
 
 | 항목 | 내용 |
 |---|---|
 | 프로젝트 | 메타체크(MetaCheck) 백엔드 — Spring Boot **4.1.1**, Java 17, Gradle 9.7.1, 패키지 `com.example.metacheck` |
-| 지금 있는 기능 | **AI 문제 생성**(`question` 패키지) — 11/03부터 수험생은 **정보처리산업기사 고정 · 시험형 단계 기준 · 2차 풀이 검증**까지. 기본은 가짜 모델이고, 실제 Bedrock 호출 코드도 있다(켜려면 설정 필요) |
-| 아직 없는 것 | **실제 Bedrock으로 돌려 본 적 없음** · 개념 추출(AI-01) · DB 엔티티 전부 · 로그인 · 호출 제한 |
-| 테스트 | 단위 테스트 **101개 전부 통과** (`question` 97 + `config` 4, DB · AWS 없이 돎) |
+| 지금 있는 기능 | **AI 문제 생성**(`question` 패키지) — 11/03부터 수험생은 **정보처리산업기사 고정 · 시험형 단계 기준 · 2차 풀이 검증**까지. 기본은 가짜 모델이고, Bedrock 직접 호출 코드(`BedrockModelClient`)도 있다 — **단, 11/04에 실제 AI 호출 경로가 학교 LiteLLM 게이트웨이로 정해져 Bedrock 코드는 쓰지 않는다**(지우지 않고 남김). 아래 "AI 호출 설정" |
+| 아직 없는 것 | **게이트웨이용 호출 클라이언트** · **실제 모델로 돌려 본 적 없음** · 개념 추출(AI-01) · DB 엔티티 전부 · 로그인 · 호출 제한 |
+| 테스트 | 단위 테스트 **111개 전부 통과** (`question` 107 + `config` 4, DB · AWS 없이 돎) |
 | DB | EC2의 Docker MySQL 8 (`metacheck` DB). **접속 정보(주소 · 비밀번호)는 git 밖에 둔다** — 서버는 환경변수, 내 PC는 `config/application.properties`. 아래 "DB 접속 설정" |
+| 서버 (사용자 보고, 11/04) | RDS는 만들지 않고 EC2(Ubuntu, t2) 안의 **Docker MySQL 8.0**으로 확정. **Java 17(Temurin)**, Spring Boot `nohup` 상시 구동, 팀원 SSH 공개키 등록(`.pem` 없이 접속). 11/04 정비: 스왑 2GB · `mysql:8.0` 공식 이미지로 컨테이너 재구축(호스트 폴더 바인딩 · 시간대 Asia/Seoul · `127.0.0.1:3306`에만 바인딩) · 보안그룹 3306 삭제 · DB GUI는 SSH 터널만. 로컬 `bootJar` 빌드 성공도 보고됨 — **Claude가 직접 확인한 것은 아니다.** 남은 것: 이 DB에 **v5 스키마 적용**(전에 `SHOW TABLES`로 같은 이름 표가 있는지 확인) · 게이트웨이 호출 클라이언트. 자세한 진행은 `../../mine_metacheck/CLAUDE.md` "10주차 회의 결정" |
 | git | 이 폴더는 상위 `C:\metacheck` 저장소(GitHub `snowbeach0102/metacheck`)의 일부. 11/03 작업은 **커밋 · 푸시 완료**(오전 `f7f1b84`~`c38d7a7`, 저녁 `11/03/화 정보처리산업기사 출제 기준 · 단원 세분화`) |
 
 ## 먼저 알아야 할 위험 (꼭 읽을 것)
 
 1. **`bootRun`과 `MetacheckApplicationTests.contextLoads`는 운영 DB에 접속한다.** `spring.jpa.hibernate.ddl-auto=update`라서 엔티티를 추가한 뒤 실행하면 **운영 DB의 테이블이 바로 바뀐다.** 사용자 허락 없이 실행하지 말 것. 아래 "DB 없이 앱 띄우기"를 쓰면 안전하다.
-2. **지금 DB 비밀번호는 이미 GitHub에 올라간 이력에 들어 있다.** 옛 RDS 때 쓰던 것과 같은 비밀번호라서, 커밋 `ee589b9` 등 4개 커밋(전부 `origin/main`에 포함)의 `application.properties`에 남아 있다. 11/03에 현재 파일에서는 뺐지만(아래 "DB 접속 설정") **이력은 그대로**다 → 노출된 것으로 보고 **DB 비밀번호를 바꿔야 한다**(서버 관리 쪽 일. 바꾸면 서버의 `DB_PASSWORD`와 각자의 `config/application.properties`도 새 값으로). 저장소 공개 여부는 확인하지 못했다. 자세한 내용은 `../CLAUDE.md`.
+2. **지금 DB 비밀번호는 이미 GitHub에 올라간 이력에 들어 있다.** 옛 RDS 때 쓰던 것과 같은 비밀번호라서, 커밋 `ee589b9` 등 4개 커밋(전부 `origin/main`에 포함)의 `application.properties`에 남아 있다. 11/03에 현재 파일에서는 뺐지만(아래 "DB 접속 설정") **이력은 그대로**다 → 노출된 것으로 보고 **DB 비밀번호를 바꿔야 한다**(서버 관리 쪽 일. 바꾸면 서버의 `DB_PASSWORD`와 각자의 `config/application.properties`도 새 값으로). 저장소 공개 여부는 확인하지 못했다. 11/03 밤에 RDS를 새로 만들지 않기로 해서 **새 인스턴스로 저절로 바뀌지도 않는다** — Docker MySQL의 비밀번호를 직접 바꿔야 한다. 자세한 내용은 `../CLAUDE.md`.
 3. **서버 관리(AWS · EC2 · Docker DB · 재배포)는 Claude 일이 아니다.** 사용자 + 외부 AI(Gemini)가 맡는다. Claude는 로컬 개발(로직 · API · 엔티티 · 버그)만 하고, `bootJar` 배포는 서버 관리 쪽이 한다.
-4. 인계 기준으로 EC2의 3306 포트(DB)가 **바깥에 열려 있다.** 닫거나 SSH 터널로 바꾸라고 사용자에게 이미 권했다(처리 여부는 모름). 위 2번(비밀번호 노출)과 겹치면 DB가 외부에서 뚫릴 수 있으니 같이 처리할 것.
+4. ~~EC2의 3306 포트가 바깥에 열려 있다~~ → **11/04 사용자 보고: 보안그룹 3306 삭제 + 컨테이너를 `127.0.0.1:3306`에만 바인딩해 해소**(Claude가 확인한 것은 아님). 위 2번(비밀번호 노출)은 **그대로**다 — 컨테이너를 다시 만들면서 비밀번호가 바뀌었는지는 보고에 없다. 팀원 SSH 공개키가 EC2에 등록돼 접속할 수 있는 사람이 늘었다 — 누구의 키인지 기록해 둘 것. 접속자는 서버의 환경변수(`DB_PASSWORD` · `LLM_API_KEY`)도 읽을 수 있다.
+5. **AI 게이트웨이 키(`LLM_API_KEY`)는 비밀번호와 같게 다룬다.** 코드 · 설정 파일 · 문서 · 커밋 · 채팅에 쓰지 않는다. 호출마다 학교 키의 사용 한도(Budget)를 쓰므로, **엔드포인트 보호(남은 일 2번) 전에 서버에서 실제 모델을 켜지 않는다**(켜면 서버를 부르는 누구나 한도를 쓸 수 있다).
 
 ## DB 접속 설정 (비밀번호는 git 밖에)
 
@@ -31,6 +33,45 @@ git이 추적하는 `src/main/resources/application.properties`에는 비밀번�
 | **서버(EC2)** | DB가 같은 서버 안이라 주소 기본값(`localhost:3306`)을 그대로 쓰고, **환경변수 `DB_PASSWORD`**(필요하면 `DB_USERNAME` · `DB_URL`)를 준다. 또는 jar 옆에 `application.properties`를 두고 `spring.datasource.password=...`를 적는다(그쪽이 우선). **재배포할 때 이 값이 없으면 앱이 시작되지 않는다**(이미 떠 있는 앱은 그대로) |
 
 비밀번호가 없으면 DB에 접속하기 전에 `DB 비밀번호가 설정되지 않았습니다…`라고 알리고 멈춘다. 이 점검(`config/DatabaseSettingsCheck`)은 `MetacheckApplication.main`이 **설정이 읽힌 직후**에 부른다 — 일반 빈으로 두면 Hibernate가 먼저 접속을 시도해서 소용없다(실제 jar로 돌려 보고 알게 됨).
+
+## AI 호출 설정 (환경변수 정의 · 11/04 변경)
+
+**11/04 사용자 보고:** 학교 발급 AWS 계정의 리전 제한 정책(`RestrictRegionSeoul`)과 IAM 권한 제약으로 Bedrock을 직접 부를 수 없어서, **학교 전용 LiteLLM 프록시 게이트웨이**(OpenAI 호환 API)로 바꿨고 curl 테스트로 검증했다고 한다(Claude가 부른 적은 없다). 과금은 게이트웨이의 **키별 사용 한도**가 막아 주므로 AWS Budgets · IAM 역할은 필요 없다.
+
+**게이트웨이 규격** (주소와 키는 서버 관리 쪽에서 받는다 — 문서에 적지 않는다):
+- 호출: `POST <게이트웨이 주소>/v1/chat/completions`, 헤더 `Authorization: Bearer ${LLM_API_KEY}`. **HTTPS 필수** — HTTP로 부르면 308 리다이렉트.
+- 모델 이름: `bedrock-haiku`(Claude Haiku 4.5 기반) · `bedrock-sonnet`(Claude 3.5 Sonnet v2 기반).
+
+**환경변수:**
+
+| 변수 | 상태 | 뜻 |
+|---|---|---|
+| `AI_CLIENT` | 있음 | `mock`(기본 · 가짜 응답 · 무료) / `bedrock`(Bedrock 직접, **이제 안 씀**). 게이트웨이 클라이언트를 더하면 `litellm` 값을 추가할 것(**이름은 제안**) |
+| `AI_VERIFY` | 있음 | 게이트 ③ 2차 풀이 켜기/끄기(기본 `true`, 호출이 약 2배) |
+| `LLM_API_KEY` | **새로(이름은 사용자 보고)** | 게이트웨이 API 키. 서버는 환경변수 또는 권한 600 파일, 내 PC는 환경변수. **절대 코드 · 설정 파일 · 문서에 쓰지 않는다** |
+| `LLM_BASE_URL` | **새로 · 제안** | 게이트웨이 주소(`https://…`). 이 문서에는 적지 않는다 |
+| `LLM_BASIC_MODEL` | **새로 · 제안** | `bedrock-haiku` — 1 · 2단계 문항 생성과 그 문항의 2차 풀이 |
+| `LLM_ADVANCED_MODEL` | **새로 · 제안** | `bedrock-sonnet` — 3단계(심화) 문항 생성과 그 문항의 2차 풀이 |
+| `LLM_TIMEOUT_SECONDS` | **새로 · 제안** | 호출 한 번의 상한, 시작값 60(기존 `BEDROCK_TIMEOUT_SECONDS` 와 같게). 실제 응답 시간을 재서 맞출 것 |
+| `BEDROCK_REGION` · `BEDROCK_BASIC_MODEL_ID` · `BEDROCK_ADVANCED_MODEL_ID` · `BEDROCK_TIMEOUT_SECONDS` | 있음 · **쓰지 않음** | Bedrock 직접 호출용. 코드는 남겨 두었다(지울지는 게이트웨이가 돌고 나서 결정) |
+
+"새로 · 제안"은 **아직 코드에 없다.** `ModelClient`(`question` 패키지) 구현체를 하나 더하는 일이다: 요청의 `system`은 `messages` 첫 항목(role `system`)으로, `Turn`은 그대로 `messages`로, `maxTokens` · `temperature`는 같은 이름으로 보내고, 응답은 `choices[0].message.content` · `finish_reason`을 `Reply`로 옮긴다. 등급(`Tier.BASIC/ADVANCED`)으로 모델 이름을 고르는 규칙은 `BedrockModelClient` 와 같다. 일시 오류 재시도와 `ModelCallException`(→ 502) 규칙도 같게 맞추고, 필수 값(주소 · 키 · 모델)이 비면 시작하지 않는 것도 같게(가짜 응답이 운영에 섞이지 않게 — `QuestionWiringTest` 방식). 테스트는 `BedrockModelClientTest` 처럼 **로컬 가짜 HTTP 서버로 왕복**하면 학교 키 한도를 안 쓴다.
+- **구현할 때 조심:** ① 인증서 검증을 끄지 말 것(게이트웨이를 주소로 부르면 인증서가 안 맞을 수 있다 — 안 맞으면 신뢰 저장소에 추가하거나 도메인을 받는다) ② `https://` 로 정확히 부를 것(308 리다이렉트를 따라가면 POST가 GET으로 바뀔 수 있다) ③ 응답 본문 · 헤더에 키가 섞여 로그로 나가지 않게 ④ 게이트웨이 뒤 모델이 바뀌면 `QuestionGenerationService.TEMPERATURE` · `QuestionVerifier.TEMPERATURE` 전달이 받아들여지는지 다시 볼 것(남은 일 1번의 `temperature` 메모).
+
+## 커밋 전 비밀 값 검사 (11/04)
+
+비밀번호 · API 키 · 서버 주소가 커밋에 섞이지 않게, **커밋 전에 한 번 돌린다.**
+
+```powershell
+cd C:\metacheck\springboot
+node tools\scan-secrets.mjs .. ..\..\mine_metacheck     # 두 저장소의 "올라갈 파일"(수정 · 새 파일)을 검사
+```
+
+- `!!` = 로컬 `config/application.properties` 의 비밀번호 · DB 주소 · 사용자, 또는 환경변수 `LLM_API_KEY` · `LLM_BASE_URL` 의 값이 파일에 들어 있다는 뜻 → **커밋하지 말 것**(나가는 코드 1). 값 자체는 출력하지 않고 파일:줄 번호만 알려 준다.
+- `?` = 사람이 볼 후보(AWS 키 · `sk-` 키 · `Bearer` 토큰 · 개인 키 · `.pem` · `amazonaws` · `password=` 대입 · 공인 IP 모양). JDK 버전 번호(`17.0.12.7`)가 IP 모양으로 걸리는 오탐이 있다.
+- PPTX · XLSX · DOCX(XML 안의 글자) · PDF(`pdftotext` 가 있을 때)도 읽는다. 그림 속 글자는 못 본다.
+- 코드에는 실제 값이 없다. 게이트웨이 주소를 `LLM_BASE_URL` 로 설정한 PC 에서는 그 주소도 대조한다.
+- `git add -A` 대신 파일을 골라 올린다. `.gitignore` 가 `/config/*`(DB 설정 파일) · `.env*` · `*.pem` · `*.key` · `*credentials*` 를 막는다. 이미 이력에 올라간 옛 DB 비밀번호는 못 지운다 — 비밀번호 교체가 답이다(위 "먼저 알아야 할 위험" 2).
 
 ## 실행 · 테스트 (Windows PowerShell)
 
@@ -55,6 +96,28 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 
 끝나면 `taskkill /PID <gradlew PID> /T /F`로 확인한 프로세스만 종료한다.
 
+### 샘플 뽑기 (11/03, 10주차 "샘플 문제" 과제용)
+
+위 설정을 스크립트로 묶었다. 단원 × 개념 × 단계마다 문항을 받아 **보고서 + 사람 검토표**로 만든다. 가짜 모델로 전체 흐름을 확인했고(mock · 가짜 HTTP 서버), **실제 모델로는 아직 안 돌렸다.** ⚠ 11/04 게이트웨이 전환으로 `start-local-ai.ps1` 의 `-Mode bedrock` 은 더 이상 쓸 길이 아니다 — 위 "AI 호출 설정"의 게이트웨이 클라이언트를 만든 뒤 `-Mode litellm`(주소는 `LLM_BASE_URL`, 키는 `LLM_API_KEY` 환경변수에서만 읽고 인자로 받지 않음)을 더해야 한다. `make-samples.mjs` 는 서버 HTTP만 부르므로 그대로 쓴다.
+
+```powershell
+# 창 1 — 서버 (127.0.0.1 에서만 열림, DB 에 안 붙음). 끄기: Ctrl+C
+.\tools\start-local-ai.ps1                                    # 가짜 모델: 파이프라인 확인, 무료
+.\tools\start-local-ai.ps1 -Mode bedrock -Region <리전> -BasicModel <1·2단계 모델 ID> -AdvancedModel <3단계 모델 ID> -AwsProfile <프로필>   # 실제 호출: 요금
+
+# 창 2 — 샘플 (기본 단원 sys-os,sys-net × 1·2·3단계 × 칸마다 1문항 = 18문항)
+node tools/make-samples.mjs --label haiku-sonnet --note "1·2단계 Haiku급 / 3단계 Sonnet급"
+node tools/make-samples.mjs --label haiku-sonnet --resume                     # 중간에 끊겼으면 받은 칸은 건너뛰고 이어서
+node tools/make-samples.mjs --label haiku-sonnet --report-only                # 서버 호출 없이 보고서만 다시
+node tools/make-samples.mjs --compare samples/모델A samples/모델B             # 두 실행 비교 → samples/compare-….md
+node tools/test-make-samples.mjs                                              # 이 스크립트의 테스트 (가짜 서버, 요금 없음)
+```
+
+- 결과는 `springboot/samples/<label>/` (git 무시 — `build/` 밖이라 `gradlew clean` 에 안 지워진다): `samples.md`(읽는 보고서, 노션에 붙여 넣기 가능) · `samples.json` · `review.csv`(**사람이 `정답맞음` 등을 O/X 로 채움** — 엑셀에서 열림) · `raw/`(서버 응답 원본, 칸마다).
+- **정확도는 사람이 `review.csv` 를 채워야 나온다.** 서버의 2차 풀이는 같은 모델 계열이 푼 것이라 독립 검증이 아니다. 모델 비교(10주차: "후보 2개를 같은 문제로 시험해 정확도로 고르기")는 서버를 모델 ID 를 바꿔 두 번 띄워 `--label` 을 달리 받고 `--compare` 로 본다. 예시는 무작위로 골라서 두 실행의 프롬프트가 글자까지 같지는 않다.
+- **안전장치:** 시작 전에 요청 규모(칸 · 문항 · 모델 호출 약 N회)를 보여 주고 y 를 받는다(`--yes` 로 생략, 터미널이 아니면 `--yes` 필수) · `127.0.0.1` 이 아닌 서버는 `--allow-remote` 없이는 안 부른다 · 연속 2번 실패하면 멈춘다 · 채워 둔 `review.csv` 는 다시 만들어도 덮어쓰지 않는다 · `[모의]` 응답이면 보고서에 가짜라고 크게 적는다 · 런처는 AWS 키를 인자로 받지 않는다(기본 경로: 환경변수 · `~/.aws` · SSO · `-AwsProfile`).
+- 한 칸의 실패(502)는 서버 창 로그에 원인이 나온다(권한 · 모델 ID · 리전 · 모델 사용 신청 여부).
+
 ## AI 문제 생성 — `question` 패키지
 
 팀이 Node로 만든 러너(`C:\mine_metacheck\ai관련\bedrock_12칸\run-bedrock.mjs`)를 Java로 옮긴 것이다. 사양서는 `C:\mine_metacheck\ai관련\AI_출제_사양서.pdf`.
@@ -72,7 +135,7 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 | `QuestionController` | `POST /api/v1/ai/questions`. 잘못된 요청 400, 모델 호출 실패 502. **로그인 · 호출 제한 없음** |
 | `QuestionGenerationService` | 위 흐름 전체. 진입점은 `generate(GenerateRequest)` — 진단 흐름에서는 이걸 서버 안에서 직접 부르면 된다 |
 | `GenerateRequest` / `PromptInput` / `InputCleaner` | 요청 검증 · 정리(줄바꿈 · 중괄호 · 태그 흉내 제거, 길이 자르기). 3단계는 `related` 필수, 문항 수 1~5 |
-| `PromptAssembler` / `PromptTemplates` / `ExampleBank` | SYSTEM · USER 조립. 템플릿은 `resources/prompts/*.txt`(시험 · 출제 범위 · 2차 풀이 틀 포함), 예시는 `examples.json`(팀 검수 전 AI 초안 18개 — 수험생 9개는 정보처리산업기사) |
+| `PromptAssembler` / `PromptTemplates` / `ExampleBank` | SYSTEM · USER 조립. 템플릿은 `resources/prompts/*.txt`(시험 · 출제 범위 · 2차 풀이 틀 포함), 예시는 `examples.json`(팀 검수 전 AI 초안 22개 — 대학생 9 + 수험생 13, 수험생은 정보처리산업기사). **예시 고르기(`ExampleBank.pick`)**: 겹치는 개념은 뺀 뒤 수험생은 단원이 속한 **과목의 예시를 먼저**, 대학생은 같은 과목을 뒤로(11/03). 과목이 안 맞으면 후보 전체를 돌려 쓴다 |
 | `QuestionGates` | 게이트 ① 형식(`code` 는 글이면 됨) · ② 규칙 · 문장 수(지문만 · 빈칸 없는 마침표 제외) · 금지 표현(보기를 가리키는 꼴만) · 풀이 · 오답 설명(steps 6자 · 풀이 요령 금지, distractors 4자 · "옳은 설명" 금지) · 정답 길이 편향 · 중복(Dice 유사도, 코드 포함) |
 | `QuestionVerifier` | 게이트 ③ 2차 풀이 — 검증 요청 글 만들기 · 검증자 답 판정(Node 의 `buildVerifyRequest` · `deriveVerify`) |
 | `ExamUnits` | 정보처리산업기사 단원표(`prompts/exam-units.json`, 원본은 `ai관련/소스/exam-units.json`) — 3과목 · 주요항목 8 · 단원 22 · 단원마다 개념 3개(초안, 정보처리기사 공식 출제기준의 같은 세부항목 세세항목에 맞춤 — JSON 의 `basis` 는 서버가 읽지 않는다) |
@@ -80,7 +143,7 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 | `OptionShuffler` | 보기 섞기. 조합(ㄱ,ㄴ) · 숫자 · 순서 보기는 섞지 않고 정렬, 모델이 `shuffle:false`면 그대로 |
 | `ModelClient` | **모델 호출부 인터페이스.** 요청에 모델 등급(`Tier`: `BASIC` · `ADVANCED`)이 들어 있고, 구현체는 `metacheck.ai.client`로 고른다 |
 | `MockModelClient` | 개발용 가짜 모델(기본값). 내용은 `[모의]` 표시가 붙은 뜻 없는 글자. 2차 풀이 요청(`[할 일]` 이 있는 글)에는 자기가 낸 문항의 정답 위치를 답한다 |
-| `BedrockModelClient` | 실제 Bedrock 호출(AWS SDK Converse, `metacheck.ai.client=bedrock`일 때만). 일시 오류는 최대 4번 호출(2초 × n 대기, Node와 같음). 권한 · 요청 오류는 재시도 없이 `ModelCallException`(→ 502) |
+| `BedrockModelClient` | Bedrock 직접 호출(AWS SDK Converse, `metacheck.ai.client=bedrock`일 때만) — **11/04부터 안 씀**(학교 게이트웨이로 전환, "AI 호출 설정"). 일시 오류는 최대 4번 호출(2초 × n 대기, Node와 같음). 권한 · 요청 오류는 재시도 없이 `ModelCallException`(→ 502) |
 | `GenerateResult` | 응답 모양. `status`: `pass` · `pass-after-retry` · `partial` · `skipped` · `fail` |
 | `config/DatabaseSettingsCheck` | (`question` 패키지 밖) DB 비밀번호가 없으면 접속 전에 이유를 알리고 멈춤. `MetacheckApplication.main`이 연결 |
 | `Json` | Jackson 3 도구. `pretty()`는 JS `JSON.stringify(v,null,2)`와 같은 모양(프롬프트 [예시]가 Node와 같아야 해서) |
@@ -115,6 +178,9 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 - `QuestionGenerationServiceTest`: 생성 · 재생성 흐름 + 2차 풀이(통과 · 정답 불일치 재생성 · 정답 2개 · 검증 응답 오류 · 단계 기록 · 병렬 검증 결과 대응 · 호출 실패 전달 · 코드 문항).
 - `BedrockModelClientTest`: 요청 변환 · 등급별 모델 ID · 재시도 · 예외 + **실제 AWS SDK로 로컬 가짜 서버에 보내는 왕복**(AWS 접속 · 비용 없음).
 - `ExamUnitsTest`(22단원 · 출제 범위 글과 이름 일치 · 개념 길이) · `UnitQuestionServiceTest`(9칸 · 수험생 · 관련 개념 · 상한 · 404 · 실패 전달) · `UnitControllerTest`.
+- `ExampleBankTest`(11/03): 예시 고르기 — 수험생은 같은 과목 먼저(정보시스템 · 프로그래밍언어 2단계는 둘 다 같은 과목) · 겹치면 빠짐 · 과목 불일치는 후보 전체 돌려 쓰기 · 대학생은 그대로 · 칸당 예시 수 3 / 4 · 5 · 4와 새 네 영역 예시. 문서 저장소 `test-bank.mjs`의 2-2와 같은 사례라, 한쪽만 고치면 다른 쪽 테스트가 알려 준다.
+- `AllUnitsPromptTest`(11/03 모의 출제 스트레스 테스트): **단원 22 × 개념 3 × 단계 3 = 198개 요청 × 시드 5**를 실제 `PromptAssembler`로 만들어 예시 2개 · fallback 없음 · `{{ }}` 안 남음 · 과목 · 단원 · 시험 · 개념 · 관련 개념 줄 · 길이 상한(1만 자)을 본다. 같은 과목 예시를 하나도 못 받는 요청 수는 상한 15(예시 은행을 넓히면 낮출 것).
+- `StressParityTest`: 문서 저장소 `stress-items.cjs`의 문항 50개(정상 22 · 모델 실수 20 · 규칙이 못 잡는 종류 8)에 `QuestionGenerationService.check`(패키지 공개)가 Node 와 **똑같은 판정**을 내는지 본다(골든 `golden/stress.json`). 정상은 모두 통과, 실수는 모두 걸림, 못 잡는 종류는 지금 통과해야 한다 — 규칙을 더해 후자가 잡히면 이 테스트가 알려 준다.
 - `QuestionGenerationServiceTest` · `MockModelClientTest` · `QuestionGatesTest` · `OptionShufflerTest` · `QuestionControllerTest`(스프링 컨텍스트 없는 MockMvc) · `QuestionWiringTest`(빈 연결, bedrock 설정이 빠지면 시작 안 함).
 - 모든 `question` 테스트는 `@SpringBootTest`를 쓰지 않아서 DB에 안 붙는다.
 
@@ -126,7 +192,7 @@ $env:SPRING_AUTOCONFIGURE_EXCLUDE='org.springframework.boot.jdbc.autoconfigure.D
 cd C:\mine_metacheck\ai관련\소스
 node assemble-bedrock.js bedrock_out3          # prompts12.json 다시 만들기 → ../bedrock_12칸/ 으로 복사 (소스/README.md 참고)
 cd C:\metacheck\springboot
-node tools/sync-from-ai-spec.mjs               # 프롬프트 조각(시험 · 출제 범위 · 2차 풀이 틀 포함) · 예시 · 골든을 다시 씀 (--ai, --out 옵션)
+node tools/sync-from-ai-spec.mjs               # 프롬프트 조각(시험 · 출제 범위 · 2차 풀이 틀 포함) · 예시 · 골든 5종(cells · parity · stress)을 다시 씀 (--ai, --out 옵션)
 .\gradlew test --tests "com.example.metacheck.question.*"
 ```
 
@@ -136,13 +202,13 @@ node tools/sync-from-ai-spec.mjs               # 프롬프트 조각(시험 · �
 
 팀 결정 · 서버 관리 쪽 일까지 합친 전체 목록은 `C:\mine_metacheck\CLAUDE.md` 의 "다음에 할 일". 아래는 이 백엔드에서 할 일이다.
 
-1. **실제 Bedrock 켜기** — 코드는 11/03에 끝났다(로컬 가짜 서버로 앱 전체 경로 확인). **실제 모델로는 아직 안 돌렸다.** 남은 것:
-   인프라 쪽에서 리전 · Haiku급 · Sonnet급 모델 ID(또는 추론 프로필 ID)를 받고, EC2 역할에 `bedrock:InvokeModel`을 준 뒤 환경변수 `AI_CLIENT=bedrock` · `BEDROCK_REGION` · `BEDROCK_BASIC_MODEL_ID` · `BEDROCK_ADVANCED_MODEL_ID`를 준다(키는 코드 · 저장소에 두지 않는다. 로컬 PC에는 AWS 자격 증명이 없다).
-   값이 빠지면 앱이 시작되지 않는다(가짜 응답이 운영에 섞이지 않게). 재배포할 때 쓰는 jar에도 같은 값이 필요하다.
-   첫 실행에서 볼 것: 호출 시간(사양서의 앱 10초 제한과 맞는지 · 2차 풀이로 약 2배) · 60초 상한 · 사양서 초안 숫자 전부 · **코드 · SQL 문항이 `code` 칸으로 나오는지** · 정답이 가장 긴 보기 비율.
-   **Haiku 4.5 · Sonnet 4.5에서는 `temperature` 0.7이 된다.** Claude 4.7 이상으로 바꾸면 기본값이 아닌 `temperature`를 거부할 수 있으니 그때 `QuestionGenerationService.TEMPERATURE` · `QuestionVerifier.TEMPERATURE`(0) 전달을 함께 봐야 한다.
-2. **엔드포인트 보호** — 로그인 + 호출 횟수 제한. `POST /api/v1/ai/questions`가 지금 누구나 부를 수 있어서 Bedrock을 켜면 호출마다 돈이 든다. **켜기 전에 먼저.**
-3. **앱과 단원별 출제 연결** — 단원표 · 단원 API 는 11/03에 만들었다(위 `UnitController`, 진단 한 번 = 단원 하나, 사용자 결정). 남은 것: 앱이 서버가 만든 문항을 진단 · 기록에 저장하도록 고치고(지금은 `BANKS` 에 있는 문항만 쓴다 — `../CLAUDE.md` "단원 세분화 · 단원별 출제"), `mock:false` 로 붙인다. 실제 Bedrock 을 켠 뒤에. 여러 단원을 섞는 과목 진단과 그 비율은 **팀이 정한다**. 단원 개념(초안)은 큐넷 세세항목을 받으면 `exam-units.json` 에서 고친다.
+1. **학교 LiteLLM 게이트웨이 호출 클라이언트 만들기 → 실제 모델 켜기** (11/04 전환; 전에는 "실제 Bedrock 켜기"였다). 규격 · 환경변수 · 구현 때 조심할 점은 위 "AI 호출 설정". 코드는 `ModelClient` 구현체 하나(+ 설정 값 연결 · 필수 값이 비면 시작하지 않는 점검 · 가짜 HTTP 서버 왕복 테스트) 추가이고, `QuestionGenerationService`/`QuestionVerifier` 는 안 바꾼다(등급만 넘기고 모델 이름은 구현체가 고른다). **실제 모델로는 아직 안 돌렸다.**
+   게이트웨이 주소 · `LLM_API_KEY` · 모델 이름은 서버 관리 쪽에서 받는다(키는 코드 · 저장소에 두지 않는다. 로컬 PC에서도 부를 수 있는지는 보고에 없다 — 게이트웨이가 EC2에서만 열리는지 확인). 필수 값이 빠지면 앱이 시작되지 않는다(가짜 응답이 운영에 섞이지 않게). 재배포할 때 쓰는 jar에도 같은 값이 필요하다.
+   첫 실행에서 볼 것: 호출 시간(사양서의 앱 10초 제한과 맞는지 · 2차 풀이로 약 2배) · 60초 상한 · 사양서 초안 숫자 전부 · **코드 · SQL 문항이 `code` 칸으로 나오는지** · 정답이 가장 긴 보기 비율 · **키 한도가 문항 몇 개에서 얼마나 줄어드는지**. → 위 "샘플 뽑기"가 이 값들을 보고서 "검사 지표"에 모아 준다(런처에 게이트웨이 모드를 더한 뒤).
+   `bedrock-sonnet` 이 Claude 3.5 Sonnet v2 기반이라면 사양서가 가정한 "Sonnet급"보다 세대가 낮을 수 있다 — 3단계 품질은 모델 비교 샘플에서 확인한다.
+   **`temperature` 메모(Bedrock 때 기록):** Haiku 4.5 · Sonnet 4.5 에서는 `temperature` 0.7이 된다. 최신 Claude(4.7 이상)는 기본값이 아닌 `temperature`를 거부할 수 있으니, 게이트웨이 뒤 모델이 바뀌면 `QuestionGenerationService.TEMPERATURE` · `QuestionVerifier.TEMPERATURE`(0) 전달을 함께 볼 것.
+2. **엔드포인트 보호** — 로그인 + 호출 횟수 제한. `POST /api/v1/ai/questions`가 지금 누구나 부를 수 있어서 실제 모델을 켜면 **호출마다 학교 키의 사용 한도를 쓴다**(요금 대신 한도 소진 — 그러면 시연 때 AI가 멈춘다). **켜기 전에 먼저.**
+3. **앱과 단원별 출제 연결** — 단원표 · 단원 API 는 11/03에 만들었다(위 `UnitController`, 진단 한 번 = 단원 하나, 사용자 결정). 남은 것: 앱이 서버가 만든 문항을 진단 · 기록에 저장하도록 고치고(지금은 `BANKS` 에 있는 문항만 쓴다 — `../CLAUDE.md` "단원 세분화 · 단원별 출제"), `mock:false` 로 붙인다. 실제 모델을 켠 뒤에. 여러 단원을 섞는 과목 진단과 그 비율은 **팀이 정한다**. 단원 개념(초안)은 큐넷 세세항목을 받으면 `exam-units.json` 에서 고친다.
 4. **AI-01 개념 추출** — 범위 축소 동안은 단원표가 대신한다. 다시 쓰게 되면 프롬프트는 `AI-01_프롬프트.md`(10초 제한이라 검증 호출 없이 서버 규칙만).
 5. **DB 엔티티와 저장** — `src`에 `@Entity`가 **하나도 없다.** 팀 ERD v5(`C:\mine_metacheck\ERD\`)가 기준이다. DB에 지금 어떤 테이블이 있는지 사용자에게 먼저 확인할 것(인계 때 "엔티티 테이블이 자동 생성됨"이라 했지만 코드엔 엔티티가 없어서 출처가 불분명하다).
 6. 프론트와 연동 — `static/index.html`은 11/03에 10/26 최신본으로 교체했고(다크 모드는 빠짐) 정보처리산업기사 범위로 축소했다. `API_CONFIG.mock: true`다. 앱은 시험 이름을 보내지 않고, 서버가 정보처리산업기사로 고정한다(11/03 구현). 앱은 문항의 `code` 칸을 코드 상자로 보여 준다. 자세한 내용은 `../CLAUDE.md`.
